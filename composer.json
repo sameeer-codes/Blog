@@ -1,0 +1,20 @@
+{
+    "name": "sameerali/blog",
+    "description": "This is the REST API backend for my blog project.",
+    "version": "1.0.0",
+    "type": "practice-project",
+    "autoload": {
+        "psr-4": {
+            "App\\": "App/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Sameer Ali",
+            "email": "sameeralifazal@gmail.com"
+        }
+    ],
+    "require": {
+        "firebase/php-jwt": "^6.11"
+    }
+}

@@ -1,0 +1,10 @@
+Array
+(
+    [username] => Sameer
+    [email] => 
+    [password] => Sameer
+)
+Array
+(
+    [email] => email  is required
+)
