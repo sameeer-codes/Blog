@@ -1,0 +1,1 @@
+This is a general readme.md file with info related to the backend and other parameters related to the project.
