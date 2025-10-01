@@ -5,25 +5,26 @@ namespace App\Core;
 class Container
 {
     protected $services = [];
+    protected $instances = [];
 
     public function setService($name, $factory)
     {
-        $this->services[$name] = function () use ($factory) {
-            static $instance = null;
-            if ($instance === null) {
-                $instance = $factory();
-            }
-            return $instance;
-        };
+        $this->services[$name] = $factory;
     }
 
     public function getService($name)
     {
         if (array_key_exists($name, $this->services)) {
-            return $this->services[$name]();
+            if (isset($this->instances[ $name])) {
+                return $this->instances[$name];
+            }
+            // Create, cache, and return instance
+            $this->instances[$name] = ($this->services[$name])();
+            return $this->instances[$name];
+
         } else {
             error_log("$name service was not found, please check the name and try again");
-            return "No $name service was found";
+            sendResponse("error", 500, "Internal Server Error");
         }
     }
 }

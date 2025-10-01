@@ -8,7 +8,7 @@ use App\Models\Users\RefreshTokenModel;
 use App\Models\Users\UserModel;
 
 $router = new Router();
-$container = require correctPath('/setContainers.php');
+$container = $GLOBALS['container'];
 $database = $container->getService('Database');
 $userModel = new UserModel($database);
 $refreshTokenModel = new RefreshTokenModel($database);

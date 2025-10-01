@@ -53,7 +53,7 @@ class Router
             if ($url === $route['url'] && strtoupper($method) === strtoupper($route['method'])) {
                 if (!empty($route['middleware'])) {
                     foreach ($route['middleware'] as $index => $middleware) {
-                        $container = require correctPath('/setContainers.php');
+                        $container = $GLOBALS['container'];
                         $middlewareContainer = $container->getService('Middleware');
                         $middlewareContainer->handle($middleware);
                     }

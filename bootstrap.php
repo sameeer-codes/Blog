@@ -22,7 +22,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 const BASE_PATH = __DIR__;
 require_once BASE_PATH . '/App/Core/functions.php';
-require_once correctPath('/App/Core/config.php');
+require_once correctPath('/config.php');
+require_once correctPath('/ContainerSetup.php');
 require_once correctPath('/App.php');
 require_once correctPath('/routes.php');
 
