@@ -15,5 +15,5 @@ $refreshTokenModel = new RefreshTokenModel($database);
 $router->get('/api/test', [HomeController::class, 'Home'], [])->attachMiddleware(['admin']);
 
 // Admin Routes 
-$router->post('/api/user/register', [RegisterController::class, 'sendResponse'], $userModel);
+$router->post('/api/user/register', [RegisterController::class, 'sendResponse'], [$userModel]);
 $router->post('/api/user/login', [LoginController::class, 'login'], [$userModel, $refreshTokenModel]);

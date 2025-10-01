@@ -1,12 +1,10 @@
 <?php
 
 namespace App\Controllers;
-
-use App\Models\Users\RefreshTokenModel;
 class HomeController
 {
     protected $data = [
-        "success" => true,
+        "status" => "success",
         "message" => "Welcome to the API of sameer's code lab"
     ];
     public function Home()

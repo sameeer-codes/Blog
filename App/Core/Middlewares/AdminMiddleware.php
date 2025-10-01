@@ -12,8 +12,11 @@ class AdminMiddleware
                 $token = $m[1];
             $jwt = decode_jwt($token);
             $expiry = $jwt['expiresAt'];
-            dd($expiry);
-        } else if ($_COOKIE) {
+            if ($expiry <= time()) {
+                sendResponse("error", 401, "The provided JWT token has expired. Please log in again to obtain a new token.");
+            }
+            return;
+        } else if ($_COOKIE['refreshToken']) {
             dd('Cookie Found');
         }
         sendResponse('error', 403, "Unauthorized Access, No Authorization header was found");
