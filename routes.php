@@ -1,5 +1,6 @@
 <?php
 
+use App\Controllers\Auth\RefreshTokenController;
 use App\Controllers\HomeController;
 use App\Core\Router;
 use App\Controllers\Auth\LoginController;
@@ -22,4 +23,4 @@ $router->get('/api/test', [HomeController::class, 'Home'], [])->attachMiddleware
 // Admin Routes 
 $router->post('/api/user/register', [RegisterController::class, 'sendResponse'], [$userModel]); // Register Model
 $router->post('/api/user/login', [LoginController::class, 'login'], [$userModel, $refreshTokenModel]);
-$router->post('/api/refresh-token', [LoginController::class, 'login'], [$userModel, $refreshTokenModel]);
+$router->get('/api/refresh-token', [RefreshTokenController::class, 'handle'], [$refreshTokenModel]);

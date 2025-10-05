@@ -13,7 +13,7 @@ class AdminMiddleware
             $jwt = decode_jwt($token);
             $expiry = $jwt['expiresAt'];
             if ($expiry <= time()) {
-                sendResponse("error", 401, "The provided JWT token has expired. Please log in again to obtain a new token.");
+                sendResponse("error", 453, "The provided JWT token has expired. Please log in again to obtain a new token.");
             }
             return;
         }

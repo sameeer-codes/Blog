@@ -30,7 +30,6 @@ class RefreshTokenModel
     {
 
         try {
-
             $sql = 'SELECT * FROM `refreshTokens` Where refreshtoken = :token';
             $result = $this->connection->Query($sql, ['token' => $token])->fetch();
         } catch (PDOException $e) {
