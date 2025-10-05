@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Models\Users;
+namespace App\Models\Auth;
 use PDOException;
 class RefreshTokenModel
 {

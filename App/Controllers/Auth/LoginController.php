@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Controllers\Users;
+namespace App\Controllers\Auth;
 
-use App\Models\Users\RefreshTokenModel;
+use App\Models\Auth\RefreshTokenModel;
 use App\Models\Users\UserModel;
 
 class LoginController

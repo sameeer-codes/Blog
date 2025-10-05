@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Controllers\Users;
+namespace App\Controllers\Auth;
 
 use App\Models\Users\UserModel;
 class RegisterController
