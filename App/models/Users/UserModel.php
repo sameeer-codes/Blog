@@ -48,4 +48,18 @@ class UserModel
         }
         return false;
     }
+    public function checkUserById($parameter)
+    {
+        try {
+            $sql = "SELECT * FROM `users` WHERE id = :id";
+            $user = $this->connection->Query($sql, ['id' => $parameter])->fetch();
+        } catch (PDOException $e) {
+            error_log("Failed to Failed to find the user" . $e->getMessage());
+            sendResponse("error", 500, "Some Error occured while trying to fetch the user");
+        }
+        if (!empty($user)) {
+            return $user;
+        }
+        return false;
+    }
 }
