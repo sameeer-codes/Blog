@@ -4,11 +4,6 @@ namespace App\Core\Middlewares;
 class MiddlewareKernal
 {
     protected $middlewares = [];
-
-    // public function __construct()
-    // {
-    //     echo "Middlewares object created at: " . spl_object_id($this) . PHP_EOL;
-    // }
     public function setMiddleware($name, $value)
     {
         $this->middlewares[$name] = $value;
@@ -17,6 +12,7 @@ class MiddlewareKernal
     public function handle($name)
     {
         if (array_key_exists($name, $this->middlewares)) {
+            // dd($this->middlewares[$name]);
             call_user_func($this->middlewares[$name]);
         } else {
             error_log("No Middleware found for $name");
