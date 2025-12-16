@@ -36,7 +36,7 @@ class RefreshTokenController
                         'issuedAt' => time(),
                         'expiresAt' => time() + 3600,
                     ]);
-                    sendResponse("success", 200, "User logged in successfully", ['jwt' => $jwtToken]);
+                    sendResponse("success", 200, "User logged in successfully", ['token' => $jwtToken]);
                 } else {
                     sendResponse('error', 403, "User not found for the given refresh token");
                 }

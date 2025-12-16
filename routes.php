@@ -2,6 +2,7 @@
 
 use App\Controllers\Auth\RefreshTokenController;
 use App\Controllers\HomeController;
+use App\Controllers\Posts\CreatePostController;
 use App\Controllers\Posts\PostsController;
 use App\Controllers\Auth\LoginController;
 use App\Controllers\Auth\RegisterController;
@@ -25,10 +26,10 @@ $router->get(
         HomeController::class,
         'Home'
     ]
-)->attachMiddleware(['admin']);
+);
 
 $router->post(
-    '/api/user/register',
+    '/api/auth/register',
     [
         RegisterController::class,
         'sendResponse'
@@ -37,16 +38,23 @@ $router->post(
 )->attachMiddleware(['guest']);
 
 $router->post(
-    '/api/user/login',
+    '/api/auth/login',
     [LoginController::class, 'login'],
     [$userModel, $refreshTokenModel]
 )->attachMiddleware(['guest']);
+
 
 $router->get(
     '/api/posts',
     [PostsController::class, 'index'],
     [$postModel]
 );
+
+$router->post(
+    '/api/post/create',
+    [CreatePostController::class, 'index'],
+    [$postModel]
+)->attachMiddleware(['auth']);
 
 $router->get(
     '/api/refresh-token',

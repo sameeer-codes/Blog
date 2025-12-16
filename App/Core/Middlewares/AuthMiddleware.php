@@ -2,7 +2,7 @@
 
 namespace App\Core\Middlewares;
 
-class AdminMiddleware
+class AuthMiddleware
 {
     static public function handle()
     {

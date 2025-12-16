@@ -5,6 +5,7 @@ function sendResponse($status, $code, $message, $data = [])
 {
     http_response_code($code);
     $response['status'] = $status;
+    $response['code'] = $code;
     $response['message'] = $message;
 
     if (!empty($data)) {

@@ -41,7 +41,7 @@ class LoginController
             return $user;
         }
 
-        sendResponse("error", 404, "Invalid email or password");
+        sendResponse("error", 401, "Invalid email or password");
     }
 
     public function login()
@@ -68,8 +68,19 @@ class LoginController
             'expires_at' => time() + 3600 * 24 * 30,
         ]);
 
-        // Optionally: set refresh token as HTTP-only cookie
-        setcookie('refreshToken', $refreshToken, time() + 3600 * 24 * 30, "/", "", false, true);
+        // Set refresh token cookie (HttpOnly)
+        setcookie(
+            'refreshToken',
+            $refreshToken,
+            [
+                'expires' => time() + 3600 * 24 * 30,
+                'path' => '/',
+                'domain' => 'localhost',
+                'secure' => false,   // true if using HTTPS
+                'httponly' => true,
+                'samesite' => 'LAX' // important for cross-origin!
+            ]
+        );
 
         sendResponse("success", 200, "Login successful", [
             'jwt' => $jwtToken

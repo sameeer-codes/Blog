@@ -12,4 +12,9 @@ class PostModel
     {
         $this->connection = $database;
     }
+
+    public function createPost($params)
+    {
+
+    }
 }
