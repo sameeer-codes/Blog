@@ -6,6 +6,7 @@ use App\Controllers\Posts\CreatePostController;
 use App\Controllers\Posts\PostsController;
 use App\Controllers\Auth\LoginController;
 use App\Controllers\Auth\RegisterController;
+use App\Controllers\Uploads\AddUploadController;
 use App\Models\Auth\RefreshTokenModel;
 use App\Models\Posts\PostModel;
 use App\Models\Users\UserModel;
@@ -19,6 +20,13 @@ $userModel = new UserModel($database); // User Model
 $postModel = new PostModel($database); // User Model
 $refreshTokenModel = new RefreshTokenModel($database); // Refresh Token Model
 
+$router->get(
+    '/',
+    [
+        HomeController::class,
+        'Home'
+    ]
+);
 
 $router->get(
     '/api/test',
@@ -54,10 +62,15 @@ $router->post(
     '/api/post/create',
     [CreatePostController::class, 'index'],
     [$postModel]
-)->attachMiddleware(['auth']);
+);
 
 $router->get(
     '/api/refresh-token',
     [RefreshTokenController::class, 'handle'],
     [$refreshTokenModel, $userModel]
+);
+
+$router->post(
+    '/api/uploads/add',
+    [AddUploadController::class, 'upload']
 );

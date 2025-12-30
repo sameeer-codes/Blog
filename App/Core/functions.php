@@ -45,13 +45,62 @@ function dd($var)
     exit;
 }
 
+function report_error($message)
+{
+    error_log(print_r($message));
+    exit;
+}
+
 function correctPath($givenPath)
 {
-    $path = BASE_PATH . $givenPath;
-    if (str_contains($path, '\\')) {
-        $path = str_replace('\\', DIRECTORY_SEPARATOR, $path);
-    } else {
-        $path = str_replace('/', DIRECTORY_SEPARATOR, $path);
+    return rtrim(BASE_PATH, '/\\')
+        . DIRECTORY_SEPARATOR
+        . trim(str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $givenPath), DIRECTORY_SEPARATOR);
+
+}
+
+
+function validatePost($postData)
+{
+    $requiredData = ['postTitle', 'Content', 'postExcerpt', 'postFeaturedImage', 'postStatus'];
+    $errors = [];
+    for ($i = 0; $i < count($requiredData); $i++) {
+        $field = $requiredData[$i];
+        if (!array_key_exists($field, $postData)) {
+            $errors[$field] = "$field is required";
+        }
     }
-    return $path;
+
+    if (count($errors) === 0) {
+        foreach ($postData as $key => $value) {
+            switch ($key) {
+                case 'postTitle': {
+                    $value = strip_tags($value);
+                    if (strlen($value) < 30 || strlen($value) > 200) {
+                        $errors[$key] = 'Post Title must be a minimum of 30 characters and maximum 200 characters';
+                    }
+                    break;
+                }
+
+                case 'postBody': {
+                    $value = strip_tags($value);
+                    if (strlen($value) < 500 || strlen($value) >= 5000) {
+                        $errors[$key] = "Post Content must be a minimum of 500 characters and maximum 5000 characters";
+                    }
+                    break;
+                }
+
+                case 'postExcerpt': {
+                    $value = strip_tags($value);
+                    if (strlen($value) < 100 || strlen($value) >= 500) {
+                        $errors[$key] = "Post Excerpt must be a minimum of 300 characters and maximum of 5000 characters";
+                    }
+                    break;
+                }
+            }
+        }
+    }
+
+
+    return $errors;
 }
