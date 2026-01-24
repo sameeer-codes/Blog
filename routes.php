@@ -62,9 +62,9 @@ $router->post(
     '/api/post/create',
     [CreatePostController::class, 'index'],
     [$postModel]
-);
+)->attachMiddleware(['auth']);
 
-$router->get(
+$router->post(
     '/api/refresh-token',
     [RefreshTokenController::class, 'handle'],
     [$refreshTokenModel, $userModel]
@@ -73,4 +73,4 @@ $router->get(
 $router->post(
     '/api/uploads/add',
     [AddUploadController::class, 'upload']
-);
+)->attachMiddleware(['auth']);

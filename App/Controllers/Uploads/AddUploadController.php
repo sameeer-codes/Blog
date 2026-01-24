@@ -37,16 +37,14 @@ class AddUploadController
 
             $filename = $pathinfo['dirname'] . '/' . $pathinfo['filename'] . "-$date" . '.' . $pathinfo['extension'];
             $filesize = $this->files['size'][0];
+
             $temp = $this->files['tmp_name'][$i];
-
-            $check = getimagesize($temp);
-
-            if (!$check) {
-                sendResponse("error", 415, "The Uploaded Media Files are not supported");
+            $isvalid = validImage($temp, $filesize, $pathinfo['extension']);
+            if (!$isvalid) {
+                sendResponse("error", 403, 'Please upload a valid image and less then 5MB , Image files accepted are png, jpg, jpeg and webp');
             }
-
             if ($this->moveFile($temp, $filename)) {
-                $this->urls[] = $_SERVER['HTTP_HOST'] . '/' . $filename;
+                $this->urls[] = $_SERVER['HTTP_HOST'] . '/uploads/' . $pathinfo['filename'] . "-$date" . '.' . $pathinfo['extension'];
             } else {
                 sendResponse("error", 500, "Unexpected Error Occured, Please try again later , or Contact the Site Admin 1");
             }

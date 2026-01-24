@@ -17,6 +17,7 @@ class AuthMiddleware
             }
             return;
         }
+        
         sendResponse('error', 403, "Unauthorized Access, No Authorization header was found");
     }
 }

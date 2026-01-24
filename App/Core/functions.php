@@ -59,10 +59,33 @@ function correctPath($givenPath)
 
 }
 
+function validImage($image, $imageSize, $extension = null)
+{
+    $acceptedImages = array('png', 'jpg', 'jpeg ', 'webp', 'gif');
+    $imageMaxSize = 1024 * 1024 * 5;
+
+    $check = getimagesize($image);
+    $isValid = in_array(strtolower($extension), $acceptedImages);
+
+    if ($check && $isValid && $imageSize <= $imageMaxSize) {
+        return true;
+    }
+
+    return false;
+}
+
+function human_filesize($bytes, $decimals = 2)
+{
+    $factor = floor((strlen($bytes) - 1) / 3);
+    if ($factor > 0)
+        $sz = 'KMGT';
+    return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . @$sz[$factor - 1] . 'B';
+}
+
 
 function validatePost($postData)
 {
-    $requiredData = ['postTitle', 'Content', 'postExcerpt', 'postFeaturedImage', 'postStatus'];
+    $requiredData = ['postTitle', 'postContent', 'postExcerpt', 'postFeaturedImage', 'postStatus'];
     $errors = [];
     for ($i = 0; $i < count($requiredData); $i++) {
         $field = $requiredData[$i];
