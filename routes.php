@@ -17,19 +17,11 @@ $router = $container->getService('Router');
 // Models for dependency injection
 $database = $container->getService('Database'); // Database Model
 $userModel = new UserModel($database); // User Model
-$postModel = new PostModel($database); // User Model
+$postModel = new PostModel($database); // Post Model
 $refreshTokenModel = new RefreshTokenModel($database); // Refresh Token Model
 
 $router->get(
     '/',
-    [
-        HomeController::class,
-        'Home'
-    ]
-);
-
-$router->get(
-    '/api/test',
     [
         HomeController::class,
         'Home'
@@ -61,7 +53,7 @@ $router->get(
 $router->post(
     '/api/post/create',
     [CreatePostController::class, 'index'],
-    [$postModel]
+    [$postModel, AddUploadController::class]
 )->attachMiddleware(['auth']);
 
 $router->post(

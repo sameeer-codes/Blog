@@ -30,6 +30,6 @@ class CreatePostController
     public function index()
     {
         $this->validatePost();
-        // sendResponse("success", 200, "Test Post Data", $this->postData);
+        sendResponse("success", 200, "Test Post Data", $this->postData);
     }
 }

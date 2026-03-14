@@ -29,7 +29,7 @@ class UserModel
             return true;
         } catch (PDOException $e) {
             error_log('Failed to Register The User' . $e->getMessage());
-            sendResponse("error", 500, 'Failed to Registet the User, please try again later');
+            sendResponse("error", 500, 'Failed to Register the User, please try again later');
         }
     }
 

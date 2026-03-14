@@ -46,7 +46,7 @@ class AddUploadController
             if ($this->moveFile($temp, $filename)) {
                 $this->urls[] = $_SERVER['HTTP_HOST'] . '/uploads/' . $pathinfo['filename'] . "-$date" . '.' . $pathinfo['extension'];
             } else {
-                sendResponse("error", 500, "Unexpected Error Occured, Please try again later , or Contact the Site Admin 1");
+                sendResponse("error", 500, "Unexpected Error Occured, Please try again later , or Contact the Site Admin");
             }
         }
     }
@@ -61,6 +61,6 @@ class AddUploadController
         if (count($this->urls) > 0) {
             sendResponse("success", 200, "files Uploaded Successfully", $this->urls);
         }
-        sendResponse("error", 500, 'Unexpected Error Occured, Please try again later , or Contact the Site Admin 2');
+        sendResponse("error", 500, 'Unexpected Error Occured, Please try again later , or Contact the Site Admin');
     }
 }

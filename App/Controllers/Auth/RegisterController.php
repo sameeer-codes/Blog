@@ -62,7 +62,7 @@ class RegisterController
     {
         $this->ValidateUser();
         if (count($this->errors) > 0) {
-            sendResponse("error", 400, "Vaildation Failed, please recheck the given values and try again.", $this->errors);
+            sendResponse("error", 400, "Vaildation Failed, please recheck the given user details and try again.", $this->errors);
         }
         $result = $this->userModel->registerUser($this->registrationData);
         if ($result) {
