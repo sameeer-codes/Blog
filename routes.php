@@ -9,6 +9,7 @@ use App\Controllers\Auth\RegisterController;
 use App\Controllers\Uploads\AddUploadController;
 use App\Models\Auth\RefreshTokenModel;
 use App\Models\Posts\PostModel;
+use App\Models\Uploads\UploadsModal;
 use App\Models\Users\UserModel;
 
 $container = $GLOBALS['container'];
@@ -19,6 +20,7 @@ $database = $container->getService('Database'); // Database Model
 $userModel = new UserModel($database); // User Model
 $postModel = new PostModel($database); // Post Model
 $refreshTokenModel = new RefreshTokenModel($database); // Refresh Token Model
+$uploadsModel = new UploadsModal($database);
 
 $router->get(
     '/',
@@ -53,7 +55,7 @@ $router->get(
 $router->post(
     '/api/post/create',
     [CreatePostController::class, 'index'],
-    [$postModel, AddUploadController::class]
+    [$postModel]
 )->attachMiddleware(['auth']);
 
 $router->post(
@@ -64,5 +66,6 @@ $router->post(
 
 $router->post(
     '/api/uploads/add',
-    [AddUploadController::class, 'upload']
+    [AddUploadController::class, 'upload'],
+    [$uploadsModel]
 )->attachMiddleware(['auth']);

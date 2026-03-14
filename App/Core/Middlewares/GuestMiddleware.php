@@ -6,9 +6,8 @@ class GuestMiddleware
 {
     static public function handle()
     {
-        if (isset($_SERVER['HTTP_AUTHORIZATION']) || isset($_COOKIE['refreshToken'])) {
-            sendResponse('error', 403, "Already logged In");
+        if (isset($_COOKIE['refreshToken'])) {
+            sendResponse("success", 200, "Already Logged In");
         }
-        return;
     }
 }

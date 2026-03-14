@@ -3,6 +3,7 @@
 namespace App\Core\Middlewares;
 
 use App\Core\Auth;
+use Exception;
 
 class AuthMiddleware
 {
@@ -10,8 +11,15 @@ class AuthMiddleware
     {
         if (isset($_SERVER['HTTP_AUTHORIZATION']) && isset($_COOKIE['refreshToken'])) {
             $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? ($_SERVER['Authorization'] ?? null);
-            if ($auth && preg_match('/Bearer\s+(.+)/i', $auth, $m))
+            if ($auth && preg_match('/Bearer\s+(.+)/i', $auth, $m)) {
                 $token = $m[1];
+            }
+            try {
+                $jwt = decode_jwt($token);
+            } catch (Exception $e) {
+                error_log("Error Decoding JWT token , Error" . $e->getMessage(), $e->getCode());
+                sendResponse("error", 401, "Unauthorized Access");
+            }
             $jwt = decode_jwt($token);
             Auth::setUser($jwt['id']);
             $expiry = $jwt['expiresAt'];

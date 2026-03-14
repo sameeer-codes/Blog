@@ -18,13 +18,12 @@ class UploadsModal
 
     public function addMedia($data)
     {
-        $query = "INSERT INTO postsmodel (`user_id` , `uploaded_to` , `file_name` ,  `base_path` , `mime_type` ,  `file_size` ,  `alt_text` , `captions`) VALUES (:user_id , :uploaded_to , :file_name , :base_path , :mime_type , `:file_size`, :alt_text , :captions)";
+        $query = "INSERT INTO uploads (`user_id` , `uploaded_to` , `file_name` ,  `base_path` , `mime_type` ,  `file_size` ,  `alt_text` , `captions`) VALUES (:user_id , :uploaded_to , :file_name , :base_path , :mime_type , :file_size, :alt_text , :captions)";
         try {
-            $sql = "INSERT INTO `users`(`username`, `email`, `password`, `userRole`) VALUES (:username ,  :email , :password , :userRole)";
-            $this->connection->Query($sql, $data);
+            $this->connection->Query($query, $data);
             return true;
         } catch (PDOException $e) {
-            error_log('Failed to Register The User' . $e->getMessage());
+            error_log('Failed to Upload the Media' . $e->getMessage(), $e->getCode());
             sendResponse("error", 500, 'Failed to Upload the media, please try again later');
         }
     }

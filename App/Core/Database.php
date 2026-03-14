@@ -48,7 +48,6 @@ class Database
 
             $this->statement->execute();
             return $this->statement;
-
         } catch (PDOException $e) {
             error_log("Failed to run the query" . $e->getMessage());
             sendResponse("error", 500, 'Failed to Run Query');

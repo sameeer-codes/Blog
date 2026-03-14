@@ -61,8 +61,8 @@ function correctPath($givenPath)
 
 function validImage($image, $imageSize, $extension = null)
 {
-    $acceptedImages = array('png', 'jpg', 'jpeg ', 'webp', 'gif');
-    $imageMaxSize = 1024 * 1024 * 5;
+    $acceptedImages = array('png', 'jpg', 'jpeg', 'webp', 'gif');
+    $imageMaxSize = 1024 * 1024 * 20;
 
     $check = getimagesize($image);
     $isValid = in_array(strtolower($extension), $acceptedImages);
