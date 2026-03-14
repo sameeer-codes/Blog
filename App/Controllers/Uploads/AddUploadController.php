@@ -57,17 +57,25 @@ class AddUploadController
                     'user_id' => Auth::user(),
                     'uploaded_to' => null,
                     'file_name' => $filename,
-                    'base_path' => $this->uploadspath . $updatedFileName,
+                    'base_path' => $this->uploadspath . "/" . $updatedFileName,
                     'mime_type' => $mimeType,
                     'file_size' => $filesize,
                     'alt_text' => null,
                     'captions' => null
                 ];
-                $this->uploads[] = [
-                    "filename" => $filename,
-                    "success" => true,
-                    'response' => $_SERVER['HTTP_HOST'] . "/" . $this->uploadspath . "/" . $updatedFileName
-                ];
+                if ($this->uploadsModel->addMedia($params)) {
+                    $this->uploads[] = [
+                        "filename" => $filename,
+                        "success" => true,
+                        'response' => $_SERVER['HTTP_HOST'] . "/" . $this->uploadspath . "/" . $updatedFileName
+                    ];
+                } else {
+                    $this->uploads[] = [
+                        "filename" => $filename,
+                        "success" => false,
+                        'response' => "There was an error uploading this file, please try again later"
+                    ];
+                }
             } else {
                 sendResponse("error", 500, "Unexpected Error Occured, Please try again later , or Contact the Site Admin");
             }
