@@ -459,12 +459,30 @@ Validation:
 - `id` is required
 - `id` must be an integer
 
+Behavior:
+
+- Fetches the upload record by id
+- Verifies that the upload belongs to the authenticated user
+- Deletes the physical file from `public/uploads`
+- Deletes the matching upload record from the `uploads` table
+
+Success response:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "Upload deleted successfully."
+}
+```
+
 Possible error cases:
 
 - `400`: missing upload id
 - `422`: invalid upload id
 - `403`: upload does not belong to the authenticated user
 - `404`: upload not found
+- `404`: uploaded file not found in storage
 - `500`: delete failed
 
 ## Database Expectations

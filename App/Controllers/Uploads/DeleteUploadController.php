@@ -40,17 +40,14 @@ class DeleteUploadController
             sendResponse(403, "You do not have permission to delete this upload.");
         }
 
-        // Check if the file exists before attempting deletion
-        // if (file_exists($file_path)) {
-        //     // Attempt to delete the file
-        //     if (unlink($file_path)) {
-        //         echo "The file " . basename($file_path) . " has been deleted successfully.";
-        //     } else {
-        //         echo "Error deleting the file " . basename($file_path) . ". Check file permissions.";
-        //     }
-        // } else {
-        //     echo "File not found: " . basename($file_path);
-        // }
+        $filePath = correctPath('/public' . $this->image['base_path']);
+        if (!file_exists($filePath)) {
+            sendResponse(404, "The uploaded file was not found in storage.");
+        }
+
+        if (!unlink($filePath)) {
+            sendResponse(500, "The uploaded file could not be deleted from storage.");
+        }
 
         $result = $this->uploadsModel->deleteUpload(['id' => $this->id, 'user_id' => $this->userId]);
         if ($result > 0) {
