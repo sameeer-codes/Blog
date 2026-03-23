@@ -18,7 +18,7 @@ class RefreshTokenModel
             $result = $this->connection->Query($sql, $data);
         } catch (PDOException $e) {
             error_log('There was an error creating a Refresh Token.' . $e->getMessage());
-            sendResponse("error", 500, "There was an error saving the creating the refresh token.");
+            sendResponse(500, "Unable to save the refresh token.");
         }
         if ($result) {
             return $result;
@@ -34,7 +34,7 @@ class RefreshTokenModel
             $result = $this->connection->Query($sql, ['token' => $token])->fetch();
         } catch (PDOException $e) {
             error_log("Error fetching the refresh Token" . $e->getMessage());
-            sendResponse('error', 500, "These was an error fetching the refresh token");
+            sendResponse(500, "Unable to fetch the refresh token.");
         }
 
         if (!empty($result)) {

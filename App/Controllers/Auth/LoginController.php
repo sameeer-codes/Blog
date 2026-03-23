@@ -28,7 +28,7 @@ class LoginController
         }
 
         if (!empty($this->errors)) {
-            sendResponse("error", 400, "Validation Failed", $this->errors);
+            sendResponse(422, "The login payload is invalid.", $this->errors);
         }
     }
 
@@ -41,7 +41,7 @@ class LoginController
             return $user;
         }
 
-        sendResponse("error", 401, "Invalid email or password");
+        sendResponse(401, "The email or password is incorrect.");
     }
 
     public function login()
@@ -82,7 +82,7 @@ class LoginController
             ]
         );
 
-        sendResponse("success", 200, "Login successful", [
+        sendResponse(200, "Login successful.", [
             'jwt' => $jwtToken
         ]);
     }

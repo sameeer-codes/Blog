@@ -15,8 +15,7 @@ class RegisterController
 
     public function __construct(UserModel $userModel)
     {
-        $this->input = file_get_contents('php://input');
-        $this->input = json_decode($this->input);
+        $this->input = json_decode(file_get_contents('php://input'));
         $this->userModel = $userModel;
     }
     public function ValidateUser()
@@ -62,7 +61,7 @@ class RegisterController
     {
         $this->ValidateUser();
         if (count($this->errors) > 0) {
-            sendResponse("error", 400, "Vaildation Failed, please recheck the given user details and try again.", $this->errors);
+            sendResponse(422, "The registration payload is invalid.", $this->errors);
         }
         $result = $this->userModel->registerUser($this->registrationData);
         if ($result) {
@@ -73,7 +72,7 @@ class RegisterController
     public function sendResponse()
     {
         if ($this->registerUser()) {
-            sendResponse("success", 200, 'Registration Successfull, Please Login with your provided credentials');
+            sendResponse(201, 'Registration successful. You can now log in with your credentials.');
         }
     }
 }

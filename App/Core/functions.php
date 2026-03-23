@@ -1,18 +1,18 @@
 <?php
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
-function sendResponse($status, $code, $message, $data = [])
+function sendResponse($code, $message, $data = null)
 {
     http_response_code($code);
-    $response['status'] = $status;
+    $response['success'] = $code < 400;
     $response['code'] = $code;
     $response['message'] = $message;
 
-    if (!empty($data)) {
+    if ($data !== null) {
         $response['data'] = $data;
     }
 
-    echo json_encode($response);
+    echo json_encode($response, JSON_UNESCAPED_SLASHES);
     exit;
 }
 

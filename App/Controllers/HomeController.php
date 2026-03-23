@@ -5,7 +5,7 @@ class HomeController
 {
     public function Home()
     {
-        sendResponse("succeess", 200, "Welcome to Sameer's Code Lab");
+        sendResponse(200, "Welcome to Sameer's Code Lab.");
         return;
     }
 }

@@ -111,14 +111,14 @@ Most endpoints return JSON in this format:
 
 ```json
 {
-  "status": "success",
+  "success": true,
   "code": 200,
   "message": "Message text",
   "data": {}
 }
 ```
 
-`data` is included only when the handler sends additional payload.
+`success` is generated from the HTTP status code, and `data` is included only when the handler sends additional payload.
 
 ### Content types used by this API
 
@@ -141,9 +141,9 @@ Example response:
 
 ```json
 {
-  "status": "succeess",
+  "success": true,
   "code": 200,
-  "message": "Welcome to Sameer's Code Lab"
+  "message": "Welcome to Sameer's Code Lab."
 }
 ```
 
@@ -178,15 +178,15 @@ Success response:
 
 ```json
 {
-  "status": "success",
-  "code": 200,
-  "message": "Registration Successfull, Please Login with your provided credentials"
+  "success": true,
+  "code": 201,
+  "message": "Registration successful. You can now log in with your credentials."
 }
 ```
 
 Possible error cases:
 
-- `400`: validation failed
+- `422`: validation failed
 - `409`: email already exists
 - `409`: username already exists
 - `500`: DB or server error
@@ -222,9 +222,9 @@ Success response:
 
 ```json
 {
-  "status": "success",
+  "success": true,
   "code": 200,
-  "message": "Login successful",
+  "message": "Login successful.",
   "data": {
     "jwt": "<token>"
   }
@@ -233,7 +233,7 @@ Success response:
 
 Possible error cases:
 
-- `400`: missing required fields
+- `422`: invalid request payload
 - `401`: invalid email or password
 - `500`: refresh token save or DB error
 
@@ -252,9 +252,9 @@ Success response:
 
 ```json
 {
-  "status": "success",
+  "success": true,
   "code": 200,
-  "message": "User logged in successfully",
+  "message": "Access token refreshed successfully.",
   "data": {
     "token": "<new-jwt>"
   }
@@ -263,9 +263,9 @@ Success response:
 
 Possible error cases:
 
-- `403`: missing refresh token cookie
-- `403`: expired or revoked refresh token
-- `403`: user not found for token
+- `401`: missing refresh token cookie
+- `401`: expired or revoked refresh token
+- `404`: user not found for token
 - `500`: DB error
 
 Implementation note:
@@ -284,9 +284,9 @@ Current response:
 
 ```json
 {
-  "status": "success",
-  "code": 200,
-  "message": "These are all the posts"
+  "success": false,
+  "code": 501,
+  "message": "Post listing is not implemented yet."
 }
 ```
 
@@ -375,9 +375,9 @@ Example success response shape:
 
 ```json
 {
-  "status": "success",
+  "success": true,
   "code": 200,
-  "message": "files Uploaded Successfully",
+  "message": "File upload completed.",
   "data": [
     {
       "filename": "example.png",
@@ -416,9 +416,9 @@ Success response when found:
 
 ```json
 {
-  "status": "success",
+  "success": true,
   "code": 200,
-  "message": "Upload Found Successfully",
+  "message": "Upload found.",
   "data": {
     "...": "upload row"
   }
@@ -429,9 +429,9 @@ Success response when not found:
 
 ```json
 {
-  "status": "success",
-  "code": 200,
-  "message": "No Upload found for  the following ID"
+  "success": false,
+  "code": 404,
+  "message": "No upload was found for the provided id."
 }
 ```
 
@@ -459,9 +459,13 @@ Validation:
 - `id` is required
 - `id` must be an integer
 
-Implementation note:
+Possible error cases:
 
-- This endpoint is currently incomplete for production use because the controller still calls `dd($this->image)` before deletion logic completes.
+- `400`: missing upload id
+- `422`: invalid upload id
+- `403`: upload does not belong to the authenticated user
+- `404`: upload not found
+- `500`: delete failed
 
 ## Database Expectations
 
@@ -507,7 +511,6 @@ These are useful for anyone integrating against the API:
 
 - `GET /api/posts` is a placeholder
 - `POST /api/post/create` is incomplete
-- `POST /api/uploads/delete` is interrupted by a debug dump
 - Refresh token validation logic needs cleanup
 - Config and secrets are hardcoded instead of using environment variables
 - No schema or migration files are included

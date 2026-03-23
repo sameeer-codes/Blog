@@ -24,7 +24,7 @@ class Container
 
         } else {
             error_log("$name service was not found, please check the name and try again");
-            sendResponse("error", 500, "Internal Server Error");
+            sendResponse(500, "Internal server error.");
         }
     }
 }

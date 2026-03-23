@@ -16,6 +16,6 @@ class PostsController
 
     public function index()
     {
-        sendResponse("success", 200, "These are all the posts");
+        sendResponse(501, "Post listing is not implemented yet.");
     }
 }

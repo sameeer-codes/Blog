@@ -7,6 +7,8 @@ use App\Controllers\Posts\PostsController;
 use App\Controllers\Auth\LoginController;
 use App\Controllers\Auth\RegisterController;
 use App\Controllers\Uploads\AddUploadController;
+use App\Controllers\Uploads\DeleteUploadController;
+use App\Controllers\Uploads\TestController;
 use App\Models\Auth\RefreshTokenModel;
 use App\Models\Posts\PostModel;
 use App\Models\Uploads\UploadsModal;
@@ -67,5 +69,17 @@ $router->post(
 $router->post(
     '/api/uploads/add',
     [AddUploadController::class, 'upload'],
+    [$uploadsModel]
+)->attachMiddleware(['auth']);
+
+$router->post(
+    '/api/uploads/test',
+    [TestController::class, 'getUpload'],
+    [$uploadsModel]
+)->attachMiddleware(['auth']);
+
+$router->post(
+    '/api/uploads/delete',
+    [DeleteUploadController::class, 'deleteUpload'],
     [$uploadsModel]
 )->attachMiddleware(['auth']);

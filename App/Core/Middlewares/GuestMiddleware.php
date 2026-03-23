@@ -7,7 +7,7 @@ class GuestMiddleware
     static public function handle()
     {
         if (isset($_COOKIE['refreshToken'])) {
-            sendResponse("success", 200, "Already Logged In");
+            sendResponse(409, "You are already logged in.");
         }
     }
 }

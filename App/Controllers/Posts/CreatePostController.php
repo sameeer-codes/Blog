@@ -20,16 +20,16 @@ class CreatePostController
     public function validatePost()
     {
         $validData = validatePost($this->postData);
-        if ($validData === null) {
-            sendResponse('success', 200, "Post Data is valid");
+        if (empty($validData)) {
+            return;
         }
 
-        sendResponse("error", 400, "Required Data is not provided", $validData);
+        sendResponse(422, "The post payload is invalid.", $validData);
     }
 
     public function index()
     {
         $this->validatePost();
-        sendResponse("success", 200, "Test Post Data", $this->postData);
+        sendResponse(501, "Post creation is not implemented yet.", $this->postData);
     }
 }

@@ -13,22 +13,23 @@ class AuthMiddleware
             $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? ($_SERVER['Authorization'] ?? null);
             if ($auth && preg_match('/Bearer\s+(.+)/i', $auth, $m)) {
                 $token = $m[1];
+            } else {
+                sendResponse(401, "A valid bearer token is required.");
             }
             try {
                 $jwt = decode_jwt($token);
             } catch (Exception $e) {
                 error_log("Error Decoding JWT token , Error" . $e->getMessage(), $e->getCode());
-                sendResponse("error", 401, "Unauthorized Access");
+                sendResponse(401, "The access token is invalid.");
             }
-            $jwt = decode_jwt($token);
             Auth::setUser($jwt['id']);
             $expiry = $jwt['expiresAt'];
             if ($expiry <= time()) {
-                sendResponse("error", 453, "The provided JWT token has expired. Please log in again to obtain a new token.");
+                sendResponse(401, "The access token has expired. Please log in again.");
             }
             return;
         }
 
-        sendResponse('error', 403, "Unauthorized Access, No Authorization header was found");
+        sendResponse(401, "Authentication is required for this endpoint.");
     }
 }

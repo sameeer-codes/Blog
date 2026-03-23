@@ -68,13 +68,13 @@ class Router
                     }
                     $class->$method();
                 } else {
-                    echo $class . ' or ' . $method . ' Not Found';
+                    sendResponse(500, 'The route handler is not available.');
                 }
                 return;
             } else if ($url === $route['url'] && strtoupper($method) != strtoupper($route['method'])) {
-                sendResponse("error", 405, "Invalid Request Method");
+                sendResponse(405, "The request method is not allowed for this route.");
             }
         }
-        sendResponse("error", 404, "Route not found for $url");
+        sendResponse(404, "The requested route was not found.");
     }
 }

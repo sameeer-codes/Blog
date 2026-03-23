@@ -23,7 +23,7 @@ class RefreshTokenController
             $this->refreshToken = $this->refreshTokenModel->getRefreshToken($this->refreshToken);
             if ($this->refreshToken) {
                 if (!$this->refreshToken['expires_at'] >= time() or $this->refreshToken['is_revoked'] === true) {
-                    sendResponse("error", 403, "Refresh Token has expired, please login again");
+                    sendResponse(401, "The refresh token has expired. Please log in again.");
                 }
                 $userid = $this->refreshToken['userid'];
                 $user = $this->userModel->checkUserById($userid);
@@ -36,13 +36,13 @@ class RefreshTokenController
                         'issuedAt' => time(),
                         'expiresAt' => time() + 3600,
                     ]);
-                    sendResponse("success", 200, "User logged in successfully", ['token' => $jwtToken]);
+                    sendResponse(200, "Access token refreshed successfully.", ['token' => $jwtToken]);
                 } else {
-                    sendResponse('error', 403, "User not found for the given refresh token");
+                    sendResponse(404, "The user for this refresh token was not found.");
                 }
             }
         } else {
-            sendResponse('error', 403, "No Refresh Token was Found");
+            sendResponse(401, "A refresh token cookie is required.");
         }
     }
     public function handle()

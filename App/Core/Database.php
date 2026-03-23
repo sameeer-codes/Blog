@@ -30,7 +30,7 @@ class Database
             return $this->connection;
         } catch (PDOException $e) {
             error_log('Database Connection Failed' . $e->getMessage());
-            sendResponse('error', 500, 'Database Connection Failed');
+            sendResponse(500, 'Database connection failed.');
         }
     }
 
@@ -50,7 +50,7 @@ class Database
             return $this->statement;
         } catch (PDOException $e) {
             error_log("Failed to run the query" . $e->getMessage());
-            sendResponse("error", 500, 'Failed to Run Query');
+            sendResponse(500, 'Database query failed.');
         }
     }
 

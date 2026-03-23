@@ -16,7 +16,7 @@ class MiddlewareKernal
             call_user_func($this->middlewares[$name]);
         } else {
             error_log("No Middleware found for $name");
-            sendResponse("error", 500, "Internal Server Error");
+            sendResponse(500, "Internal server error.");
         }
     }
 

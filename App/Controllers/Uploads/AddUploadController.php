@@ -50,7 +50,7 @@ class AddUploadController
                 $this->uploads[] = [
                     "filename" => $filename,
                     "success" => false,
-                    'response' => "Please upload a valid image and less then 20MB , Image files accepted are png, jpg, jpeg and webp"
+                    'response' => "Upload a valid image under 20MB. Accepted types: png, jpg, jpeg, webp, gif."
                 ];
             } else if ($this->moveFile($temp, $updatedFilePath)) {
                 $params = [
@@ -63,7 +63,7 @@ class AddUploadController
                     'alt_text' => null,
                     'captions' => null
                 ];
-                if ($this->uploadsModel->addMedia($params)) {
+                if ($this->uploadsModel->addUpload($params)) {
                     $this->uploads[] = [
                         "filename" => $filename,
                         "success" => true,
@@ -73,11 +73,11 @@ class AddUploadController
                     $this->uploads[] = [
                         "filename" => $filename,
                         "success" => false,
-                        'response' => "There was an error uploading this file, please try again later"
+                        'response' => "The file upload could not be saved. Please try again."
                     ];
                 }
             } else {
-                sendResponse("error", 500, "Unexpected Error Occured, Please try again later , or Contact the Site Admin");
+                sendResponse(500, "The uploaded file could not be stored.");
             }
         }
     }
@@ -90,8 +90,8 @@ class AddUploadController
     {
         $this->validate();
         if (count($this->uploads) > 0) {
-            sendResponse("success", 200, "files Uploaded Successfully", $this->uploads);
+            sendResponse(200, "File upload completed.", $this->uploads);
         }
-        sendResponse("error", 500, 'Unexpected Error Occured, Please try again later , or Contact the Site Admin');
+        sendResponse(500, 'No upload result could be produced.');
     }
 }

@@ -18,9 +18,9 @@ class UserModel
     public function registerUser($data = [])
     {
         if ($this->checkUser($data['email'])) {
-            sendResponse('error', 409, "Email alredy exists");
+            sendResponse(409, "An account with this email already exists.");
         } else if ($this->checkUser($data['username'])) {
-            sendResponse("error", 409, "Username Alredy Exists");
+            sendResponse(409, "This username is already taken.");
         }
         try {
             $data['userRole'] = 'admin';
@@ -29,7 +29,7 @@ class UserModel
             return true;
         } catch (PDOException $e) {
             error_log('Failed to Register The User' . $e->getMessage());
-            sendResponse("error", 500, 'Failed to Register the User, please try again later');
+            sendResponse(500, 'Unable to register the user right now.');
         }
     }
 
@@ -41,7 +41,7 @@ class UserModel
             $user = $this->connection->Query($sql, $params)->fetch();
         } catch (PDOException $e) {
             error_log("Failed to Failed to find the user" . $e->getMessage());
-            sendResponse("error", 500, "Some Error occured while trying to fetch the user");
+            sendResponse(500, "Unable to fetch the user record.");
         }
         if (!empty($user)) {
             return $user;
@@ -55,7 +55,7 @@ class UserModel
             $user = $this->connection->Query($sql, ['id' => $parameter])->fetch();
         } catch (PDOException $e) {
             error_log("Failed to Failed to find the user" . $e->getMessage());
-            sendResponse("error", 500, "Some Error occured while trying to fetch the user");
+            sendResponse(500, "Unable to fetch the user record.");
         }
         if (!empty($user)) {
             return $user;
