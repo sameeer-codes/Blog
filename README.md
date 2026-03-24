@@ -296,7 +296,7 @@ Implementation note:
 
 ### `POST /api/post/create`
 
-Validates a post creation payload.
+Creates a new post.
 
 Auth: `auth` middleware
 
@@ -305,29 +305,71 @@ Required auth:
 - `Authorization: Bearer <jwt>`
 - `refreshToken` cookie
 
-Request body expected by validation helper:
+Request body:
 
 ```json
 {
   "postTitle": "A sufficiently long blog title...",
-  "postContent": "Main post content...",
-  "postExcerpt": "Short summary...",
-  "postFeaturedImage": "/uploads/example.webp",
+  "postBody": "Main post content...",
+  "postExcerpt": "Optional summary...",
+  "featuredImage": 12,
   "postStatus": "draft"
 }
 ```
 
-Validation currently present in the code:
+Required fields:
 
-- `postTitle`: required, length 30 to 200
-- `postExcerpt`: required, length 100 to 499
-- `postFeaturedImage`: required
-- `postStatus`: required
-- The helper also checks `postBody`, not `postContent`
+- `postTitle`
+- `postBody`
+- `postStatus`
 
-Implementation note:
+Optional fields:
 
-- This route is not complete. The validation helper and controller do not currently line up correctly, and the model method is still empty.
+- `postExcerpt`
+- `featuredImage`
+
+Validation:
+
+- `postTitle`: required, `30` to `200` characters
+- `postBody`: required, `500` to `4999` characters
+- `postExcerpt`: optional, `100` to `299` characters when provided
+- `featuredImage`: optional, must be a valid positive upload id when provided
+- `postStatus`: required, must be one of `draft`, `published`, `archived`
+
+Behavior:
+
+- Generates `post_slug` from `postTitle`
+- Uses the authenticated user as `author_id`
+- If `postExcerpt` is not provided, it is generated from the first part of `postBody`
+- Auto-generated excerpts that are trimmed end with `...`
+- If `featuredImage` is provided, the upload must exist and belong to the authenticated user
+- Stores post data in the `posts` table using the real table columns
+
+Success response:
+
+```json
+{
+  "success": true,
+  "code": 201,
+  "message": "Post created successfully.",
+  "data": {
+    "post_title": "A sufficiently long blog title...",
+    "post_slug": "a-sufficiently-long-blog-title",
+    "post_content": "Main post content...",
+    "post_excerpt": "Optional summary...",
+    "post_featured_image": "12",
+    "author_id": 1,
+    "post_status": "draft"
+  }
+}
+```
+
+Possible error cases:
+
+- `422`: invalid post payload
+- `404`: featured image upload not found
+- `403`: featured image upload does not belong to the authenticated user
+- `500`: insert failed
 
 ### `POST /api/uploads`
 
@@ -609,7 +651,6 @@ The exact schema is not included in the repository, but the following fields are
 These are useful for anyone integrating against the API:
 
 - `GET /api/posts` is a placeholder
-- `POST /api/post/create` is incomplete
 - Refresh token validation logic needs cleanup
 - Config and secrets are hardcoded instead of using environment variables
 - No schema or migration files are included

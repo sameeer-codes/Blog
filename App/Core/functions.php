@@ -85,7 +85,7 @@ function human_filesize($bytes, $decimals = 2)
 
 function validatePost($postData)
 {
-    $requiredData = ['postTitle', 'postBody', 'featuredImage'];
+    $requiredData = ['postTitle', 'postBody', 'postStatus'];
     $errors = [];
     for ($i = 0; $i < count($requiredData); $i++) {
         $field = $requiredData[$i];
@@ -106,6 +106,7 @@ function validatePost($postData)
                 }
 
                 case 'postBody': {
+                    $value = trim($value);
                     if (strlen($value) < 500 || strlen($value) >= 5000) {
                         $errors[$key] = "Post Content must be a minimum of 500 characters and maximum 5000 characters";
                     }
@@ -113,8 +114,27 @@ function validatePost($postData)
                 }
 
                 case 'postExcerpt': {
-                    if (strlen($value) < 100 || strlen($value) >= 300) {
+                    $value = trim(strip_tags($value));
+                    if (!empty($value) && (strlen($value) < 100 || strlen($value) >= 300)) {
                         $errors[$key] = "Excert can only be 100 characters minimum and 300 characters maximum";
+                    }
+                    break;
+                }
+
+                case 'featuredImage': {
+                    if ($value !== null && $value !== '' && (!is_int($value) || $value < 1)) {
+                        $errors[$key] = "featuredImage must be a valid upload id";
+                    }
+                    break;
+                }
+
+                case 'postStatus': {
+                    $value = trim($value);
+                    $validStatuses = ['draft', 'published', 'archived'];
+                    if (empty($value)) {
+                        $errors[$key] = "postStatus is required";
+                    } else if (!in_array($value, $validStatuses, true)) {
+                        $errors[$key] = "postStatus must be one of: draft, published, archived";
                     }
                     break;
                 }

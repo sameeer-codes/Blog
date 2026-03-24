@@ -58,7 +58,7 @@ $router->get(
 $router->post(
     '/api/post/create',
     [CreatePostController::class, 'index'],
-    [$postModel]
+    [$postModel, $uploadsModel]
 )->attachMiddleware(['auth']);
 
 $router->post(
