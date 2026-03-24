@@ -4,6 +4,7 @@ use App\Controllers\Auth\RefreshTokenController;
 use App\Controllers\HomeController;
 use App\Controllers\Posts\CreatePostController;
 use App\Controllers\Posts\PostsController;
+use App\Controllers\Posts\SinglePostController;
 use App\Controllers\Auth\LoginController;
 use App\Controllers\Auth\RegisterController;
 use App\Controllers\Uploads\AddUploadController;
@@ -52,6 +53,12 @@ $router->post(
 $router->get(
     '/api/posts',
     [PostsController::class, 'index'],
+    [$postModel]
+);
+
+$router->get(
+    '/api/posts/single',
+    [SinglePostController::class, 'index'],
     [$postModel]
 );
 

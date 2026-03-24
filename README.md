@@ -274,25 +274,100 @@ Implementation note:
 
 ### `GET /api/posts`
 
-Placeholder endpoint for listing posts.
+Fetches paginated posts.
 
 Auth: none
 
-Expected input: none
+Query parameters:
 
-Current response:
+- `page`: optional, default `1`, must be greater than `0`
+- `limit`: optional, default `10`, must be between `1` and `50`
+
+Behavior:
+
+- Orders posts by `post_id DESC`
+- Returns paginated post results
+- Adds an `index` field to each returned item based on the current page offset
+
+Success response shape:
 
 ```json
 {
-  "success": false,
-  "code": 501,
-  "message": "Post listing is not implemented yet."
+  "success": true,
+  "code": 200,
+  "message": "Posts fetched successfully.",
+  "data": {
+    "items": [
+      {
+        "post_id": 3,
+        "post_title": "My third post",
+        "post_slug": "my-third-post",
+        "post_content": "Post body here...",
+        "post_excerpt": "Post excerpt here...",
+        "post_featured_image": "12",
+        "author_id": 1,
+        "post_status": "published",
+        "created_at": "2026-03-24 10:00:00",
+        "updated_at": "2026-03-24 10:00:00",
+        "index": 1
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 3,
+      "total_pages": 1,
+      "has_next_page": false,
+      "has_previous_page": false
+    }
+  }
 }
 ```
 
-Implementation note:
+Possible error cases:
 
-- This route currently does not fetch posts from the database.
+- `422`: invalid `page`
+- `422`: invalid `limit`
+- `500`: query or count failed
+
+### `GET /api/posts/single`
+
+Fetches a single post by id.
+
+Auth: none
+
+Query parameters:
+
+- `id`: required, must be a valid integer greater than `0`
+
+Success response:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "Post found.",
+  "data": {
+    "post_id": 1,
+    "post_title": "My first post",
+    "post_slug": "my-first-post",
+    "post_content": "Post body here...",
+    "post_excerpt": "Post excerpt here...",
+    "post_featured_image": "12",
+    "author_id": 1,
+    "post_status": "draft",
+    "created_at": "2026-03-24 10:00:00",
+    "updated_at": "2026-03-24 10:00:00"
+  }
+}
+```
+
+Possible error cases:
+
+- `400`: missing post id
+- `422`: invalid post id
+- `404`: post not found
+- `500`: query failed
 
 ### `POST /api/post/create`
 
@@ -650,7 +725,6 @@ The exact schema is not included in the repository, but the following fields are
 
 These are useful for anyone integrating against the API:
 
-- `GET /api/posts` is a placeholder
 - Refresh token validation logic needs cleanup
 - Config and secrets are hardcoded instead of using environment variables
 - No schema or migration files are included
