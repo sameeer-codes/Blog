@@ -42,7 +42,8 @@ class Database
             $this->statement = $this->connection->prepare($sql);
             if (!empty($params)) {
                 foreach ($params as $key => $value) {
-                    $this->statement->bindValue(":$key", $value);
+                    $type = is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR;
+                    $this->statement->bindValue(":$key", $value, $type);
                 }
             }
 

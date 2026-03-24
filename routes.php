@@ -8,6 +8,8 @@ use App\Controllers\Auth\LoginController;
 use App\Controllers\Auth\RegisterController;
 use App\Controllers\Uploads\AddUploadController;
 use App\Controllers\Uploads\DeleteUploadController;
+use App\Controllers\Uploads\EditUploadController;
+use App\Controllers\Uploads\GetUploadsController;
 use App\Controllers\Uploads\TestController;
 use App\Models\Auth\RefreshTokenModel;
 use App\Models\Posts\PostModel;
@@ -72,14 +74,26 @@ $router->post(
     [$uploadsModel]
 )->attachMiddleware(['auth']);
 
+$router->get(
+    '/api/uploads',
+    [GetUploadsController::class, 'index'],
+    [$uploadsModel]
+)->attachMiddleware(['auth']);
+
 $router->post(
     '/api/uploads/test',
     [TestController::class, 'getUpload'],
     [$uploadsModel]
 )->attachMiddleware(['auth']);
 
-$router->post(
+$router->delete(
     '/api/uploads/delete',
     [DeleteUploadController::class, 'deleteUpload'],
+    [$uploadsModel]
+)->attachMiddleware(['auth']);
+
+$router->patch(
+    '/api/uploads/edit',
+    [EditUploadController::class, 'editUpload'],
     [$uploadsModel]
 )->attachMiddleware(['auth']);

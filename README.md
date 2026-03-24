@@ -24,7 +24,8 @@ This repository contains a custom PHP backend for a blog application. It exposes
 
 - All responses are JSON and use the shared `sendResponse()` helper.
 - CORS currently allows `http://localhost:5173`.
-- Allowed methods currently configured at bootstrap level: `POST`, `GET`, `OPTIONS`.
+- Routes currently use `GET`, `POST`, `PATCH`, and `DELETE`.
+- Bootstrap CORS headers currently allow `POST`, `GET`, and `OPTIONS`, so browser-based `PATCH` and `DELETE` requests will require a CORS header update.
 - The API sets `Content-Type: application/json` globally.
 - The login flow sets a `refreshToken` cookie with `HttpOnly`.
 
@@ -388,6 +389,68 @@ Example success response shape:
 }
 ```
 
+### `GET /api/uploads`
+
+Fetches paginated uploads for the authenticated user.
+
+Auth: `auth` middleware
+
+Required auth:
+
+- `Authorization: Bearer <jwt>`
+- `refreshToken` cookie
+
+Query parameters:
+
+- `page`: optional, default `1`, must be greater than `0`
+- `limit`: optional, default `10`, must be between `1` and `50`
+
+Behavior:
+
+- Returns only uploads that belong to the authenticated user
+- Orders uploads by `id DESC`
+- Excludes `user_id` from the response items
+- Adds an `index` field to each returned item based on the current page offset
+
+Success response shape:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "Uploads fetched successfully.",
+  "data": {
+    "items": [
+      {
+        "id": 12,
+        "uploaded_to": null,
+        "file_name": "example.png",
+        "base_path": "/uploads/example.png",
+        "mime_type": "image/png",
+        "file_size": 102400,
+        "alt_text": null,
+        "captions": null,
+        "index": 1
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 24,
+      "total_pages": 3,
+      "has_next_page": true,
+      "has_previous_page": false
+    }
+  }
+}
+```
+
+Possible error cases:
+
+- `422`: invalid `page`
+- `422`: invalid `limit`
+- `500`: query or count failed
+
 ### `POST /api/uploads/test`
 
 Fetches an upload record by ID.
@@ -435,7 +498,7 @@ Success response when not found:
 }
 ```
 
-### `POST /api/uploads/delete`
+### `DELETE /api/uploads/delete`
 
 Deletes an upload record owned by the authenticated user.
 
@@ -484,6 +547,72 @@ Possible error cases:
 - `404`: upload not found
 - `404`: uploaded file not found in storage
 - `500`: delete failed
+
+### `PATCH /api/uploads/edit`
+
+Updates the `alt_text` and/or `captions` fields of a single upload record owned by the authenticated user.
+
+Auth: `auth` middleware
+
+Required auth:
+
+- `Authorization: Bearer <jwt>`
+- `refreshToken` cookie
+
+Request body:
+
+```json
+{
+  "id": 1,
+  "alt_text": "Updated alt text",
+  "captions": "Updated caption"
+}
+```
+
+Behavior:
+
+- `id` is required and must be an integer
+- `alt_text` is optional
+- `captions` is optional
+- Both text fields are sanitized with trimming and tag removal
+- If both optional fields are empty or missing, the API returns an error instead of updating
+- Only the provided fields are updated in the database
+
+Validation:
+
+- `alt_text`: maximum `200` characters
+- `captions`: maximum `200` characters
+
+Success response when an update is applied:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "Upload updated successfully."
+}
+```
+
+Success response when the payload is valid but nothing changes:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "No upload changes were made."
+}
+```
+
+Possible error cases:
+
+- `400`: missing upload id
+- `400`: no fields were provided to update
+- `422`: invalid upload id
+- `422`: `alt_text` exceeds `200` characters
+- `422`: `captions` exceeds `200` characters
+- `403`: upload does not belong to the authenticated user
+- `404`: upload not found
+- `500`: update failed
 
 ## Database Expectations
 

@@ -39,6 +39,37 @@ class UploadsModal
         }
     }
 
+    public function updateUpload($data)
+    {
+        $fields = [];
+        $params = [
+            'id' => $data['id'],
+            'user_id' => $data['user_id'],
+        ];
+
+        if (array_key_exists('alt_text', $data)) {
+            $fields[] = "alt_text = :alt_text";
+            $params['alt_text'] = $data['alt_text'];
+        }
+
+        if (array_key_exists('captions', $data)) {
+            $fields[] = "captions = :captions";
+            $params['captions'] = $data['captions'];
+        }
+
+        if (empty($fields)) {
+            return 0;
+        }
+
+        $sql = "UPDATE uploads SET " . implode(', ', $fields) . " WHERE id = :id AND user_id = :user_id";
+        try {
+            return $this->connection->Query($sql, $params)->rowCount();
+        } catch (PDOException $e) {
+            error_log("Error Updating the file" . $e->getMessage(), $e->getCode());
+            sendResponse(500, "Unable to update the upload record.");
+        }
+    }
+
     public function getUploadById($data)
     {
         $sql = "SELECT * FROM uploads WHERE id = :id";
@@ -47,6 +78,29 @@ class UploadsModal
         } catch (PDOException $e) {
             error_log("Error Deleting the file" . $e->getMessage(), $e->getCode());
             sendResponse(500, "Unable to fetch the upload record.");
+        }
+    }
+
+    public function getUploads($data)
+    {
+        $sql = "SELECT id, uploaded_to, file_name, base_path, mime_type, file_size, alt_text, captions FROM uploads WHERE user_id = :user_id ORDER BY id DESC LIMIT :limit OFFSET :offset";
+        try {
+            return $this->connection->Query($sql, $data)->fetchAll();
+        } catch (PDOException $e) {
+            error_log("Error fetching uploads" . $e->getMessage(), $e->getCode());
+            sendResponse(500, "Unable to fetch uploads.");
+        }
+    }
+
+    public function countUploads($data)
+    {
+        $sql = "SELECT COUNT(*) as total FROM uploads WHERE user_id = :user_id";
+        try {
+            $result = $this->connection->Query($sql, $data)->fetch();
+            return (int) $result['total'];
+        } catch (PDOException $e) {
+            error_log("Error counting uploads" . $e->getMessage(), $e->getCode());
+            sendResponse(500, "Unable to count uploads.");
         }
     }
 }
