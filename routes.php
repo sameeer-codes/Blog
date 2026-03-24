@@ -3,7 +3,10 @@
 use App\Controllers\Auth\RefreshTokenController;
 use App\Controllers\HomeController;
 use App\Controllers\Posts\CreatePostController;
+use App\Controllers\Posts\DeletePostController;
+use App\Controllers\Posts\EditPostController;
 use App\Controllers\Posts\PostsController;
+use App\Controllers\Posts\SearchPostsController;
 use App\Controllers\Posts\SinglePostController;
 use App\Controllers\Auth\LoginController;
 use App\Controllers\Auth\RegisterController;
@@ -62,10 +65,28 @@ $router->get(
     [$postModel]
 );
 
+$router->get(
+    '/api/posts/search',
+    [SearchPostsController::class, 'index'],
+    [$postModel]
+);
+
 $router->post(
     '/api/post/create',
     [CreatePostController::class, 'index'],
     [$postModel, $uploadsModel]
+)->attachMiddleware(['auth']);
+
+$router->patch(
+    '/api/posts',
+    [EditPostController::class, 'index'],
+    [$postModel, $uploadsModel]
+)->attachMiddleware(['auth']);
+
+$router->delete(
+    '/api/posts',
+    [DeletePostController::class, 'index'],
+    [$postModel]
 )->attachMiddleware(['auth']);
 
 $router->post(
