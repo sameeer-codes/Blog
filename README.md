@@ -25,7 +25,6 @@ This repository contains a custom PHP backend for a blog application. It exposes
 - All responses are JSON and use the shared `sendResponse()` helper.
 - CORS currently allows `http://localhost:5173`.
 - Routes currently use `GET`, `POST`, `PATCH`, and `DELETE`.
-- Bootstrap CORS headers currently allow `POST`, `GET`, and `OPTIONS`, so browser-based `PATCH` and `DELETE` requests will require a CORS header update.
 - The API sets `Content-Type: application/json` globally.
 - The login flow sets a `refreshToken` cookie with `HttpOnly`.
 
@@ -330,7 +329,7 @@ Implementation note:
 
 - This route is not complete. The validation helper and controller do not currently line up correctly, and the model method is still empty.
 
-### `POST /api/uploads/add`
+### `POST /api/uploads`
 
 Uploads one or more image files and stores metadata in the `uploads` table.
 
@@ -451,54 +450,7 @@ Possible error cases:
 - `422`: invalid `limit`
 - `500`: query or count failed
 
-### `POST /api/uploads/test`
-
-Fetches an upload record by ID.
-
-Auth: `auth` middleware
-
-Required auth:
-
-- `Authorization: Bearer <jwt>`
-- `refreshToken` cookie
-
-Request body:
-
-```json
-{
-  "id": 1
-}
-```
-
-Validation:
-
-- `id` is required
-- `id` must be an integer
-
-Success response when found:
-
-```json
-{
-  "success": true,
-  "code": 200,
-  "message": "Upload found.",
-  "data": {
-    "...": "upload row"
-  }
-}
-```
-
-Success response when not found:
-
-```json
-{
-  "success": false,
-  "code": 404,
-  "message": "No upload was found for the provided id."
-}
-```
-
-### `DELETE /api/uploads/delete`
+### `DELETE /api/uploads`
 
 Deletes an upload record owned by the authenticated user.
 
@@ -548,7 +500,7 @@ Possible error cases:
 - `404`: uploaded file not found in storage
 - `500`: delete failed
 
-### `PATCH /api/uploads/edit`
+### `PATCH /api/uploads`
 
 Updates the `alt_text` and/or `captions` fields of a single upload record owned by the authenticated user.
 
