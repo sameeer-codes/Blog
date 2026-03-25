@@ -72,6 +72,23 @@ class PostModel
         }
     }
 
+    public function slugExists($params)
+    {
+        $sql = "SELECT post_id FROM posts WHERE post_slug = :post_slug";
+
+        if (array_key_exists('post_id', $params)) {
+            $sql .= " AND post_id != :post_id";
+        }
+
+        try {
+            $result = $this->connection->Query($sql, $params)->fetch();
+            return !empty($result);
+        } catch (PDOException $e) {
+            error_log("Failed to check post slug" . $e->getMessage());
+            sendResponse(500, "Unable to validate the post slug right now.");
+        }
+    }
+
     public function updatePost($params)
     {
         $fields = [];
