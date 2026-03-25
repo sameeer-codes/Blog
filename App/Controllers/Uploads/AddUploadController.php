@@ -18,14 +18,24 @@ class AddUploadController
 
     public function __construct(UploadsModal $uploadsModel)
     {
-        $this->files = $_FILES['files'];
+        $this->files = $_FILES['files'] ?? null;
         $this->uploadsModel = $uploadsModel;
+        $this->uploads = [];
     }
 
     private function validate()
     {
         $this->uploadspath = '/uploads';
         $this->uploadDir = correctPath("/public/uploads");
+
+        if (
+            !is_array($this->files)
+            || !isset($this->files['name'])
+            || !is_array($this->files['name'])
+            || count($this->files['name']) === 0
+        ) {
+            sendResponse(422, "At least one file is required.");
+        }
 
         $finfo = new finfo(FILEINFO_MIME_TYPE);
         if (!is_dir($this->uploadDir)) {
@@ -42,7 +52,7 @@ class AddUploadController
             $fileExtension = $filepath['extension']; //File Extension
             $updatedFileName = $filepath['filename'] . "-$date" . '.' . $fileExtension; // Updated Filename
             $updatedFilePath = $filepath['dirname'] . "/" . $updatedFileName; // Updated Filename
-            $filesize = $this->files['size'][0];
+            $filesize = $this->files['size'][$i];
             $temp = $this->files['tmp_name'][$i];
             $mimeType = $finfo->file($temp);
             $isvalid = validImage($temp, $filesize, $fileExtension);
@@ -50,7 +60,8 @@ class AddUploadController
                 $this->uploads[] = [
                     "filename" => $filename,
                     "success" => false,
-                    'response' => "Upload a valid image under 20MB. Accepted types: png, jpg, jpeg, webp, gif."
+                    'base_path' => null,
+                    'message' => "Upload a valid image under 20MB. Accepted types: png, jpg, jpeg, webp, gif."
                 ];
             } else if ($this->moveFile($temp, $updatedFilePath)) {
                 $params = [
@@ -67,13 +78,15 @@ class AddUploadController
                     $this->uploads[] = [
                         "filename" => $filename,
                         "success" => true,
-                        'response' => $_SERVER['HTTP_HOST'] . "/" . $this->uploadspath . "/" . $updatedFileName
+                        'base_path' => absoluteUrl($this->uploadspath . "/" . $updatedFileName),
+                        'message' => "File uploaded successfully."
                     ];
                 } else {
                     $this->uploads[] = [
                         "filename" => $filename,
                         "success" => false,
-                        'response' => "The file upload could not be saved. Please try again."
+                        'base_path' => null,
+                        'message' => "The file upload could not be saved. Please try again."
                     ];
                 }
             } else {

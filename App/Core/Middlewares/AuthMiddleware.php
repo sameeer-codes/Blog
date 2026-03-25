@@ -3,6 +3,8 @@
 namespace App\Core\Middlewares;
 
 use App\Core\Auth;
+use App\Core\Database;
+use App\Models\Auth\RefreshTokenModel;
 use Exception;
 
 class AuthMiddleware
@@ -10,6 +12,17 @@ class AuthMiddleware
     static public function handle()
     {
         if (isset($_SERVER['HTTP_AUTHORIZATION']) && isset($_COOKIE['refreshToken'])) {
+            $database = new Database();
+            $refreshTokenModel = new RefreshTokenModel($database);
+            $refreshToken = $refreshTokenModel->getRefreshToken($_COOKIE['refreshToken']);
+            if (
+                !$refreshToken
+                || (int) $refreshToken['expires_at'] < time()
+                || (int) $refreshToken['is_revoked'] === 1
+            ) {
+                sendResponse(401, "Authentication is required for this endpoint.");
+            }
+
             $auth = $_SERVER['HTTP_AUTHORIZATION'] ?? ($_SERVER['Authorization'] ?? null);
             if ($auth && preg_match('/Bearer\s+(.+)/i', $auth, $m)) {
                 $token = $m[1];

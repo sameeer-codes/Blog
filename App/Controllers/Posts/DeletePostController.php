@@ -20,6 +20,12 @@ class DeletePostController
 
     public function index()
     {
+        if (!is_array($this->inputs)) {
+            sendResponse(422, "The post payload is invalid.", [
+                'payload' => 'A valid JSON object is required'
+            ]);
+        }
+
         if (array_key_exists('postId', $this->inputs)) {
             $this->postId = $this->inputs['postId'];
         } else {
@@ -30,16 +36,13 @@ class DeletePostController
             sendResponse(422, "The postId field must be a valid integer.");
         }
 
-        $this->post = $this->postModel->getPostById([
+        $this->post = $this->postModel->getAuthorPostById([
             'post_id' => $this->postId,
+            'author_id' => Auth::user(),
         ]);
 
         if (!$this->post) {
             sendResponse(404, "No post was found for the provided id.");
-        }
-
-        if ((int) $this->post['author_id'] !== (int) Auth::user()) {
-            sendResponse(403, "You do not have permission to delete this post.");
         }
 
         $result = $this->postModel->deletePost([

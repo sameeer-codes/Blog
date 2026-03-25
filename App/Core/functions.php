@@ -59,6 +59,22 @@ function correctPath($givenPath)
 
 }
 
+function absoluteUrl($path)
+{
+    $scheme = 'http';
+    if (
+        (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (isset($_SERVER['SERVER_PORT']) && (int) $_SERVER['SERVER_PORT'] === 443)
+    ) {
+        $scheme = 'https';
+    }
+
+    $host = $_SERVER['HTTP_HOST'] ?? 'localhost';
+    $path = '/' . ltrim((string) $path, '/');
+
+    return $scheme . '://' . $host . $path;
+}
+
 function validImage($image, $imageSize, $extension = null)
 {
     $acceptedImages = array('png', 'jpg', 'jpeg', 'webp', 'gif');
@@ -87,6 +103,12 @@ function validatePost($postData)
 {
     $requiredData = ['postTitle', 'postBody', 'postStatus'];
     $errors = [];
+    if (!is_array($postData)) {
+        return [
+            'payload' => 'A valid JSON object is required'
+        ];
+    }
+
     for ($i = 0; $i < count($requiredData); $i++) {
         $field = $requiredData[$i];
         if (!array_key_exists($field, $postData)) {

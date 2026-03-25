@@ -319,12 +319,9 @@ Possible error cases:
 
 - `401`: missing refresh token cookie
 - `401`: expired or revoked refresh token
+- `404`: refresh token not found
 - `404`: user not found for token
 - `500`: DB error
-
-Implementation note:
-
-- The current refresh-token validation logic exists, but this flow should be treated as under refinement because the expiration condition in code needs cleanup.
 
 ### `GET /api/posts`
 
@@ -628,6 +625,7 @@ Validation:
 Behavior:
 
 - Generates `post_slug` from `postTitle`
+- If the generated slug already exists, appends a numeric suffix such as `-2`, `-3`, and so on until a unique slug is found
 - Uses the authenticated user as `author_id`
 - If `postExcerpt` is not provided, it is generated from the first part of `postBody`
 - Auto-generated excerpts that are trimmed end with `...`
@@ -694,7 +692,7 @@ Behavior:
 - `postId` is required
 - Only the authenticated author can update the post
 - All editable fields are optional except `postId`
-- If `postTitle` changes, `post_slug` is regenerated
+- If `postTitle` changes, `post_slug` is regenerated and resolved to a unique slug if needed
 - If `postExcerpt` is empty and `postBody` is updated, an excerpt is generated automatically
 - `featuredImage` may be set to `null` or empty to remove it
 
@@ -802,9 +800,21 @@ Example success response shape:
     {
       "filename": "example.png",
       "success": true,
-      "response": "localhost/uploads/example-23-03-2026-10-10-10-123.png"
+      "base_path": "http://localhost:8000/uploads/example-23-03-2026-10-10-10-123.png",
+      "message": "File uploaded successfully."
     }
   ]
+}
+```
+
+Example failed item inside the upload response:
+
+```json
+{
+  "filename": "bad-file.txt",
+  "success": false,
+  "base_path": null,
+  "message": "Upload a valid image under 20MB. Accepted types: png, jpg, jpeg, webp, gif."
 }
 ```
 
@@ -844,7 +854,7 @@ Success response shape:
         "id": 12,
         "uploaded_to": null,
         "file_name": "example.png",
-        "base_path": "/uploads/example.png",
+        "base_path": "http://localhost:8000/uploads/example.png",
         "mime_type": "image/png",
         "file_size": 102400,
         "alt_text": null,

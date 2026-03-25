@@ -45,6 +45,7 @@ class GetUploadsController
         ]);
 
         foreach ($uploads as $index => $upload) {
+            $uploads[$index]['base_path'] = absoluteUrl($upload['base_path']);
             $uploads[$index]['index'] = $this->offset + $index + 1;
         }
 

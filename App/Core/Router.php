@@ -49,6 +49,7 @@ class Router
 
     public function routeToController(string $url, $method = 'get')
     {
+        $matchedPath = false;
         foreach ($this->routes as $routeIndex => $route) {
             if ($url === $route['url'] && strtoupper($method) === strtoupper($route['method'])) {
                 if (!empty($route['middleware'])) {
@@ -71,10 +72,15 @@ class Router
                     sendResponse(500, 'The route handler is not available.');
                 }
                 return;
-            } else if ($url === $route['url'] && strtoupper($method) != strtoupper($route['method'])) {
-                sendResponse(405, "The request method is not allowed for this route.");
+            } else if ($url === $route['url']) {
+                $matchedPath = true;
             }
         }
+
+        if ($matchedPath) {
+            sendResponse(405, "The request method is not allowed for this route.");
+        }
+
         sendResponse(404, "The requested route was not found.");
     }
 }

@@ -25,7 +25,6 @@ class LogoutController
         setcookie('refreshToken', '', [
             'expires' => time() - 3600,
             'path' => '/',
-            'domain' => 'localhost',
             'secure' => false,
             'httponly' => true,
             'samesite' => 'LAX'

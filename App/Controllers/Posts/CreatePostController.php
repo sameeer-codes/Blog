@@ -36,6 +36,20 @@ class CreatePostController
         return trim($slug, '-');
     }
 
+    private function resolveUniqueSlug($title)
+    {
+        $baseSlug = $this->generateSlug($title);
+        $slug = $baseSlug;
+        $suffix = 2;
+
+        while ($this->postsModel->slugExists(['post_slug' => $slug])) {
+            $slug = $baseSlug . '-' . $suffix;
+            $suffix++;
+        }
+
+        return $slug;
+    }
+
     private function generateExcerpt($content, $limit = 299)
     {
         $content = trim(strip_tags($content));
@@ -78,7 +92,7 @@ class CreatePostController
 
         $this->postParams = [
             'post_title' => trim(strip_tags($this->postData['postTitle'])),
-            'post_slug' => $this->generateSlug($this->postData['postTitle']),
+            'post_slug' => $this->resolveUniqueSlug($this->postData['postTitle']),
             'post_content' => trim($this->postData['postBody']),
             'post_excerpt' => $postExcerpt,
             'post_featured_image' => $postFeaturedImage !== null ? (string) $postFeaturedImage : null,

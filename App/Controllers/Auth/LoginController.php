@@ -21,8 +21,21 @@ class LoginController
 
     protected function validateUser()
     {
+        if (!is_array($this->input)) {
+            sendResponse(422, "The login payload is invalid.", [
+                'payload' => 'A valid JSON object is required'
+            ]);
+        }
+
+        $requiredFields = ['email', 'password'];
+        foreach ($requiredFields as $field) {
+            if (!array_key_exists($field, $this->input) || trim((string) $this->input[$field]) === '') {
+                $this->errors[$field] = "$field is required";
+            }
+        }
+
         foreach ($this->input as $field => $value) {
-            if (empty(trim($value))) {
+            if (!is_scalar($value) || empty(trim((string) $value))) {
                 $this->errors[$field] = "$field is required";
             }
         }
@@ -75,7 +88,6 @@ class LoginController
             [
                 'expires' => time() + 3600 * 24 * 30,
                 'path' => '/',
-                'domain' => 'localhost',
                 'secure' => false,   // true if using HTTPS
                 'httponly' => true,
                 'samesite' => 'LAX' // important for cross-origin!

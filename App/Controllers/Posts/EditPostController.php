@@ -29,6 +29,23 @@ class EditPostController
         return trim($slug, '-');
     }
 
+    private function resolveUniqueSlug($title, $postId)
+    {
+        $baseSlug = $this->generateSlug($title);
+        $slug = $baseSlug;
+        $suffix = 2;
+
+        while ($this->postModel->slugExists([
+            'post_slug' => $slug,
+            'post_id' => $postId,
+        ])) {
+            $slug = $baseSlug . '-' . $suffix;
+            $suffix++;
+        }
+
+        return $slug;
+    }
+
     private function generateExcerpt($content, $limit = 299)
     {
         $content = trim(strip_tags($content));
@@ -50,6 +67,12 @@ class EditPostController
 
     public function index()
     {
+        if (!is_array($this->inputs)) {
+            sendResponse(422, "The post payload is invalid.", [
+                'payload' => 'A valid JSON object is required'
+            ]);
+        }
+
         if (array_key_exists('postId', $this->inputs)) {
             $this->postId = $this->inputs['postId'];
         } else {
@@ -60,16 +83,13 @@ class EditPostController
             sendResponse(422, "The postId field must be a valid integer.");
         }
 
-        $this->post = $this->postModel->getPostById([
+        $this->post = $this->postModel->getAuthorPostById([
             'post_id' => $this->postId,
+            'author_id' => Auth::user(),
         ]);
 
         if (!$this->post) {
             sendResponse(404, "No post was found for the provided id.");
-        }
-
-        if ((int) $this->post['author_id'] !== (int) Auth::user()) {
-            sendResponse(403, "You do not have permission to edit this post.");
         }
 
         if (array_key_exists('postTitle', $this->inputs) && trim((string) $this->inputs['postTitle']) !== '') {
@@ -78,7 +98,7 @@ class EditPostController
                 sendResponse(422, "postTitle must be between 30 and 200 characters.");
             }
             $this->updateData['post_title'] = $postTitle;
-            $this->updateData['post_slug'] = $this->generateSlug($postTitle);
+            $this->updateData['post_slug'] = $this->resolveUniqueSlug($postTitle, $this->postId);
         }
 
         if (array_key_exists('postBody', $this->inputs) && trim((string) $this->inputs['postBody']) !== '') {
