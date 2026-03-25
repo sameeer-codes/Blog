@@ -104,6 +104,10 @@ Routes behind `auth` middleware require:
 
 Routes behind `guest` middleware are intended for unauthenticated users.
 
+If an already-authenticated user hits a guest-only route, the API returns:
+
+- `409`: `You are already logged in.`
+
 ## Request and Response Format
 
 ### Standard response shape
@@ -125,6 +129,21 @@ Most endpoints return JSON in this format:
 
 - `application/json` for auth, post, refresh-token, and upload metadata requests
 - `multipart/form-data` for file uploads
+
+### How to pass parameters
+
+This API uses three parameter locations. Each endpoint section below states which one it expects.
+
+- Query string: append parameters to the URL, for example `/api/posts?page=1&limit=10`
+- JSON body: send `Content-Type: application/json` and pass a JSON object in the request body
+- Multipart form data: send `Content-Type: multipart/form-data` and pass files through fields such as `files[]`
+
+Rules used in this codebase:
+
+- `GET` routes read parameters from the query string
+- `POST`, `PUT`, `PATCH`, and `DELETE` routes that accept structured data read parameters from the JSON body unless the endpoint is a file upload
+- Upload creation uses `multipart/form-data`
+- Authenticated routes require the `Authorization: Bearer <jwt>` header and the `refreshToken` cookie unless the route documentation says otherwise
 
 ## API Endpoints
 
@@ -236,7 +255,41 @@ Possible error cases:
 
 - `422`: invalid request payload
 - `401`: invalid email or password
+- `409`: user is already logged in
 - `500`: refresh token save or DB error
+
+### `POST /api/auth/logout`
+
+Logs out the current browser session by revoking the stored refresh token and clearing the `refreshToken` cookie.
+
+Auth: none at route level
+
+How parameters must be passed:
+
+- No JSON body is required
+- Requires the `refreshToken` cookie
+
+Behavior:
+
+- Looks up the current `refreshToken` cookie in the database
+- Marks the token as revoked
+- Clears the `refreshToken` cookie from the browser
+
+Success response:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "Logout successful."
+}
+```
+
+Possible error cases:
+
+- `401`: missing refresh token cookie
+- `404`: refresh token not found
+- `500`: revoke failed
 
 ### `POST /api/refresh-token`
 
@@ -371,6 +424,50 @@ Possible error cases:
 - `404`: post not found
 - `500`: query failed
 
+### `GET /api/posts/slug`
+
+Fetches a single published post by `post_slug`. This is the public endpoint intended to support frontend routes such as `/blog/:slug`.
+
+Auth: none
+
+How parameters must be passed:
+
+- Pass `slug` in the query string
+- Example: `/api/posts/slug?slug=my-first-post`
+
+Query parameters:
+
+- `slug`: required, non-empty string
+
+Success response:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "Post found.",
+  "data": {
+    "post_id": 1,
+    "post_title": "My first post",
+    "post_slug": "my-first-post",
+    "post_content": "Post body here...",
+    "post_excerpt": "Post excerpt here...",
+    "post_featured_image": "12",
+    "author_id": 1,
+    "post_status": "published",
+    "created_at": "2026-03-24 10:00:00",
+    "updated_at": "2026-03-24 10:00:00"
+  }
+}
+```
+
+Possible error cases:
+
+- `400`: missing post slug
+- `422`: empty or invalid post slug
+- `404`: post not found
+- `500`: query failed
+
 ### `GET /api/posts/search`
 
 Searches published posts by title, content, or excerpt.
@@ -492,6 +589,11 @@ Required auth:
 - `Authorization: Bearer <jwt>`
 - `refreshToken` cookie
 
+How parameters must be passed:
+
+- Send `Content-Type: application/json`
+- Pass the post fields in the JSON request body
+
 Request body:
 
 ```json
@@ -569,6 +671,11 @@ Required auth:
 - `Authorization: Bearer <jwt>`
 - `refreshToken` cookie
 
+How parameters must be passed:
+
+- Send `Content-Type: application/json`
+- Pass `postId` and any fields to change in the JSON request body
+
 Request body:
 
 ```json
@@ -620,6 +727,11 @@ Required auth:
 
 - `Authorization: Bearer <jwt>`
 - `refreshToken` cookie
+
+How parameters must be passed:
+
+- Send `Content-Type: application/json`
+- Pass `postId` in the JSON request body
 
 Request body:
 
@@ -769,6 +881,11 @@ Required auth:
 - `Authorization: Bearer <jwt>`
 - `refreshToken` cookie
 
+How parameters must be passed:
+
+- Send `Content-Type: application/json`
+- Pass `id` in the JSON request body
+
 Request body:
 
 ```json
@@ -818,6 +935,11 @@ Required auth:
 
 - `Authorization: Bearer <jwt>`
 - `refreshToken` cookie
+
+How parameters must be passed:
+
+- Send `Content-Type: application/json`
+- Pass `id` and any fields to update in the JSON request body
 
 Request body:
 
@@ -997,6 +1119,7 @@ Valid payload with featured image:
 ```text
 GET /api/posts?page=1&limit=10
 GET /api/posts/single?id=1
+GET /api/posts/slug?slug=my-first-post
 GET /api/posts/search?query=php&page=1&limit=10
 ```
 

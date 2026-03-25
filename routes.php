@@ -1,6 +1,7 @@
 <?php
 
 use App\Controllers\Auth\RefreshTokenController;
+use App\Controllers\Auth\LogoutController;
 use App\Controllers\HomeController;
 use App\Controllers\Posts\AuthorPostsController;
 use App\Controllers\Posts\AuthorSinglePostController;
@@ -10,6 +11,7 @@ use App\Controllers\Posts\EditPostController;
 use App\Controllers\Posts\PostsController;
 use App\Controllers\Posts\SearchPostsController;
 use App\Controllers\Posts\SinglePostController;
+use App\Controllers\Posts\SinglePostBySlugController;
 use App\Controllers\Auth\LoginController;
 use App\Controllers\Auth\RegisterController;
 use App\Controllers\Uploads\AddUploadController;
@@ -68,6 +70,12 @@ $router->get(
 );
 
 $router->get(
+    '/api/posts/slug',
+    [SinglePostBySlugController::class, 'index'],
+    [$postModel]
+);
+
+$router->get(
     '/api/posts/search',
     [SearchPostsController::class, 'index'],
     [$postModel]
@@ -107,6 +115,12 @@ $router->post(
     '/api/refresh-token',
     [RefreshTokenController::class, 'handle'],
     [$refreshTokenModel, $userModel]
+);
+
+$router->post(
+    '/api/auth/logout',
+    [LogoutController::class, 'handle'],
+    [$refreshTokenModel]
 );
 
 $router->post(
