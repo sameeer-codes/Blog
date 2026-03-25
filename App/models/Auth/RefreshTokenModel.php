@@ -43,4 +43,15 @@ class RefreshTokenModel
 
         return false;
     }
+
+    public function revokeRefreshToken($token)
+    {
+        try {
+            $sql = "UPDATE `refreshTokens` SET `is_revoked` = 1 WHERE `refreshtoken` = :token";
+            return $this->connection->Query($sql, ['token' => $token])->rowCount();
+        } catch (PDOException $e) {
+            error_log("Error revoking the refresh token" . $e->getMessage());
+            sendResponse(500, "Unable to revoke the refresh token.");
+        }
+    }
 }

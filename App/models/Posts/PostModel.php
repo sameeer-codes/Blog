@@ -61,6 +61,17 @@ class PostModel
         }
     }
 
+    public function getPostBySlug($params)
+    {
+        $sql = "SELECT post_id, post_title, post_slug, post_content, post_excerpt, post_featured_image, author_id, post_status, created_at, updated_at FROM posts WHERE post_slug = :post_slug AND post_status = 'published'";
+        try {
+            return $this->connection->Query($sql, $params)->fetch();
+        } catch (PDOException $e) {
+            error_log("Failed to fetch post by slug" . $e->getMessage());
+            sendResponse(500, "Unable to fetch the post right now.");
+        }
+    }
+
     public function updatePost($params)
     {
         $fields = [];
