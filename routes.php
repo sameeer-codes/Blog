@@ -2,6 +2,8 @@
 
 use App\Controllers\Auth\RefreshTokenController;
 use App\Controllers\HomeController;
+use App\Controllers\Posts\AuthorPostsController;
+use App\Controllers\Posts\AuthorSinglePostController;
 use App\Controllers\Posts\CreatePostController;
 use App\Controllers\Posts\DeletePostController;
 use App\Controllers\Posts\EditPostController;
@@ -71,8 +73,20 @@ $router->get(
     [$postModel]
 );
 
+$router->get(
+    '/api/posts/me',
+    [AuthorPostsController::class, 'index'],
+    [$postModel]
+)->attachMiddleware(['auth']);
+
+$router->get(
+    '/api/posts/me/single',
+    [AuthorSinglePostController::class, 'index'],
+    [$postModel]
+)->attachMiddleware(['auth']);
+
 $router->post(
-    '/api/post/create',
+    '/api/posts',
     [CreatePostController::class, 'index'],
     [$postModel, $uploadsModel]
 )->attachMiddleware(['auth']);

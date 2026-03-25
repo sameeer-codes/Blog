@@ -29,7 +29,7 @@ class PostModel
 
     public function getPosts($params)
     {
-        $sql = "SELECT post_id, post_title, post_slug, post_content, post_excerpt, post_featured_image, author_id, post_status, created_at, updated_at FROM posts ORDER BY post_id DESC LIMIT :limit OFFSET :offset";
+        $sql = "SELECT post_id, post_title, post_slug, post_content, post_excerpt, post_featured_image, author_id, post_status, created_at, updated_at FROM posts WHERE post_status = 'published' ORDER BY post_id DESC LIMIT :limit OFFSET :offset";
         try {
             return $this->connection->Query($sql, $params)->fetchAll();
         } catch (PDOException $e) {
@@ -40,7 +40,7 @@ class PostModel
 
     public function countPosts()
     {
-        $sql = "SELECT COUNT(*) as total FROM posts";
+        $sql = "SELECT COUNT(*) as total FROM posts WHERE post_status = 'published'";
         try {
             $result = $this->connection->Query($sql)->fetch();
             return (int) $result['total'];
@@ -52,7 +52,7 @@ class PostModel
 
     public function getPostById($params)
     {
-        $sql = "SELECT post_id, post_title, post_slug, post_content, post_excerpt, post_featured_image, author_id, post_status, created_at, updated_at FROM posts WHERE post_id = :post_id";
+        $sql = "SELECT post_id, post_title, post_slug, post_content, post_excerpt, post_featured_image, author_id, post_status, created_at, updated_at FROM posts WHERE post_id = :post_id AND post_status = 'published'";
         try {
             return $this->connection->Query($sql, $params)->fetch();
         } catch (PDOException $e) {
@@ -125,7 +125,7 @@ class PostModel
 
     public function searchPosts($params)
     {
-        $sql = "SELECT post_id, post_title, post_slug, post_content, post_excerpt, post_featured_image, author_id, post_status, created_at, updated_at FROM posts WHERE post_title LIKE :query OR post_content LIKE :query OR post_excerpt LIKE :query ORDER BY post_id DESC LIMIT :limit OFFSET :offset";
+        $sql = "SELECT post_id, post_title, post_slug, post_content, post_excerpt, post_featured_image, author_id, post_status, created_at, updated_at FROM posts WHERE post_status = 'published' AND (post_title LIKE :query OR post_content LIKE :query OR post_excerpt LIKE :query) ORDER BY post_id DESC LIMIT :limit OFFSET :offset";
         try {
             return $this->connection->Query($sql, $params)->fetchAll();
         } catch (PDOException $e) {
@@ -136,13 +136,47 @@ class PostModel
 
     public function countSearchPosts($params)
     {
-        $sql = "SELECT COUNT(*) as total FROM posts WHERE post_title LIKE :query OR post_content LIKE :query OR post_excerpt LIKE :query";
+        $sql = "SELECT COUNT(*) as total FROM posts WHERE post_status = 'published' AND (post_title LIKE :query OR post_content LIKE :query OR post_excerpt LIKE :query)";
         try {
             $result = $this->connection->Query($sql, $params)->fetch();
             return (int) $result['total'];
         } catch (PDOException $e) {
             error_log("Failed to count searched posts" . $e->getMessage());
             sendResponse(500, "Unable to count search results right now.");
+        }
+    }
+
+    public function getAuthorPosts($params)
+    {
+        $sql = "SELECT post_id, post_title, post_slug, post_content, post_excerpt, post_featured_image, author_id, post_status, created_at, updated_at FROM posts WHERE author_id = :author_id ORDER BY post_id DESC LIMIT :limit OFFSET :offset";
+        try {
+            return $this->connection->Query($sql, $params)->fetchAll();
+        } catch (PDOException $e) {
+            error_log("Failed to fetch author posts" . $e->getMessage());
+            sendResponse(500, "Unable to fetch your posts right now.");
+        }
+    }
+
+    public function countAuthorPosts($params)
+    {
+        $sql = "SELECT COUNT(*) as total FROM posts WHERE author_id = :author_id";
+        try {
+            $result = $this->connection->Query($sql, $params)->fetch();
+            return (int) $result['total'];
+        } catch (PDOException $e) {
+            error_log("Failed to count author posts" . $e->getMessage());
+            sendResponse(500, "Unable to count your posts right now.");
+        }
+    }
+
+    public function getAuthorPostById($params)
+    {
+        $sql = "SELECT post_id, post_title, post_slug, post_content, post_excerpt, post_featured_image, author_id, post_status, created_at, updated_at FROM posts WHERE post_id = :post_id AND author_id = :author_id";
+        try {
+            return $this->connection->Query($sql, $params)->fetch();
+        } catch (PDOException $e) {
+            error_log("Failed to fetch author post" . $e->getMessage());
+            sendResponse(500, "Unable to fetch your post right now.");
         }
     }
 }

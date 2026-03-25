@@ -24,7 +24,8 @@ This repository contains a custom PHP backend for a blog application. It exposes
 
 - All responses are JSON and use the shared `sendResponse()` helper.
 - CORS currently allows `http://localhost:5173`.
-- Routes currently use `GET`, `POST`, `PATCH`, and `DELETE`.
+- The custom router supports `GET`, `POST`, `PUT`, `PATCH`, and `DELETE`.
+- The currently registered routes use `GET`, `POST`, `PATCH`, and `DELETE`.
 - The API sets `Content-Type: application/json` globally.
 - The login flow sets a `refreshToken` cookie with `HttpOnly`.
 
@@ -274,7 +275,7 @@ Implementation note:
 
 ### `GET /api/posts`
 
-Fetches paginated posts.
+Fetches paginated published posts.
 
 Auth: none
 
@@ -286,6 +287,7 @@ Query parameters:
 Behavior:
 
 - Orders posts by `post_id DESC`
+- Returns only posts with `post_status = published`
 - Returns paginated post results
 - Adds an `index` field to each returned item based on the current page offset
 
@@ -332,7 +334,7 @@ Possible error cases:
 
 ### `GET /api/posts/single`
 
-Fetches a single post by id.
+Fetches a single published post by id.
 
 Auth: none
 
@@ -369,7 +371,117 @@ Possible error cases:
 - `404`: post not found
 - `500`: query failed
 
-### `POST /api/post/create`
+### `GET /api/posts/search`
+
+Searches published posts by title, content, or excerpt.
+
+Auth: none
+
+Query parameters:
+
+- `query`: required, search text
+- `page`: optional, default `1`, must be greater than `0`
+- `limit`: optional, default `10`, must be between `1` and `50`
+
+Behavior:
+
+- Searches only posts with `post_status = published`
+- Looks in `post_title`, `post_content`, and `post_excerpt`
+- Returns paginated search results with `index`
+
+Success response shape:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "Posts fetched successfully.",
+  "data": {
+    "items": [
+      {
+        "post_id": 1,
+        "post_title": "Custom PHP Authentication Guide",
+        "post_slug": "custom-php-authentication-guide",
+        "post_content": "Post body here...",
+        "post_excerpt": "Excerpt here...",
+        "post_featured_image": "1",
+        "author_id": 1,
+        "post_status": "published",
+        "created_at": "2026-03-25 10:00:00",
+        "updated_at": "2026-03-25 10:00:00",
+        "index": 1
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 10,
+      "total": 1,
+      "total_pages": 1,
+      "has_next_page": false,
+      "has_previous_page": false
+    }
+  }
+}
+```
+
+Possible error cases:
+
+- `400`: missing search query
+- `422`: invalid `page`
+- `422`: invalid `limit`
+- `500`: query or count failed
+
+### `GET /api/posts/me`
+
+Fetches paginated posts for the authenticated author, including `draft`, `published`, and `archived`.
+
+Auth: `auth` middleware
+
+Required auth:
+
+- `Authorization: Bearer <jwt>`
+- `refreshToken` cookie
+
+Query parameters:
+
+- `page`: optional, default `1`, must be greater than `0`
+- `limit`: optional, default `10`, must be between `1` and `50`
+
+Behavior:
+
+- Returns only posts where `author_id` is the authenticated user
+- Includes all statuses
+- Adds an `index` field to each returned item based on the current page offset
+
+Possible error cases:
+
+- `422`: invalid `page`
+- `422`: invalid `limit`
+- `500`: query or count failed
+
+### `GET /api/posts/me/single`
+
+Fetches a single post by id for the authenticated author, including drafts and archived posts.
+
+Auth: `auth` middleware
+
+Required auth:
+
+- `Authorization: Bearer <jwt>`
+- `refreshToken` cookie
+
+Query parameters:
+
+- `id`: required, must be a valid integer greater than `0`
+
+Possible error cases:
+
+- `400`: missing post id
+- `422`: invalid post id
+- `404`: post not found for the authenticated author
+- `500`: query failed
+
+### `POST /api/posts`
 
 Creates a new post.
 
@@ -445,6 +557,85 @@ Possible error cases:
 - `404`: featured image upload not found
 - `403`: featured image upload does not belong to the authenticated user
 - `500`: insert failed
+
+### `PATCH /api/posts`
+
+Updates an existing post owned by the authenticated author.
+
+Auth: `auth` middleware
+
+Required auth:
+
+- `Authorization: Bearer <jwt>`
+- `refreshToken` cookie
+
+Request body:
+
+```json
+{
+  "postId": 1,
+  "postTitle": "Updated Custom PHP Blog Architecture for Better Maintainability",
+  "postBody": "Updated post body content...",
+  "postExcerpt": "Updated summary...",
+  "featuredImage": 1,
+  "postStatus": "published"
+}
+```
+
+Behavior:
+
+- `postId` is required
+- Only the authenticated author can update the post
+- All editable fields are optional except `postId`
+- If `postTitle` changes, `post_slug` is regenerated
+- If `postExcerpt` is empty and `postBody` is updated, an excerpt is generated automatically
+- `featuredImage` may be set to `null` or empty to remove it
+
+Validation:
+
+- `postId`: required, valid integer greater than `0`
+- `postTitle`: optional, `30` to `200` characters
+- `postBody`: optional, `500` to `4999` characters
+- `postExcerpt`: optional, `100` to `299` characters when provided as text
+- `featuredImage`: optional, valid upload id when provided
+- `postStatus`: optional, one of `draft`, `published`, `archived`
+
+Possible error cases:
+
+- `400`: missing `postId`
+- `400`: no fields were provided to update
+- `422`: invalid field values
+- `403`: post does not belong to the authenticated user
+- `404`: post not found
+- `404`: featured image upload not found
+- `500`: update failed
+
+### `DELETE /api/posts`
+
+Deletes a post owned by the authenticated author.
+
+Auth: `auth` middleware
+
+Required auth:
+
+- `Authorization: Bearer <jwt>`
+- `refreshToken` cookie
+
+Request body:
+
+```json
+{
+  "postId": 1
+}
+```
+
+Possible error cases:
+
+- `400`: missing `postId`
+- `422`: invalid `postId`
+- `403`: post does not belong to the authenticated user
+- `404`: post not found
+- `500`: delete failed
 
 ### `POST /api/uploads`
 
@@ -690,6 +881,7 @@ The code implies the existence of at least these tables:
 - `users`
 - `refreshtokens`
 - `uploads`
+- `posts`
 
 The exact schema is not included in the repository, but the following fields are referenced:
 
@@ -721,6 +913,19 @@ The exact schema is not included in the repository, but the following fields are
 - `alt_text`
 - `captions`
 
+### `posts`
+
+- `post_id`
+- `post_title`
+- `post_slug`
+- `post_content`
+- `post_excerpt`
+- `post_featured_image`
+- `author_id`
+- `post_status`
+- `created_at`
+- `updated_at`
+
 ## Known Gaps in the Current Codebase
 
 These are useful for anyone integrating against the API:
@@ -729,6 +934,78 @@ These are useful for anyone integrating against the API:
 - Config and secrets are hardcoded instead of using environment variables
 - No schema or migration files are included
 - No automated test suite is included
+
+## Testing Guide
+
+Use these examples to quickly validate the API.
+
+### Login
+
+```json
+{
+  "email": "sameer@example.com",
+  "password": "StrongPassword1!"
+}
+```
+
+### Create post
+
+Minimal valid payload:
+
+```json
+{
+  "postTitle": "How I Structured My First Custom PHP Blog Backend",
+  "postBody": "This is a long dummy post body meant for testing the create post endpoint. To make it pass the current validation, the content needs to be at least five hundred characters long. So this sample keeps going with realistic filler text about building routes, controllers, models, middleware, upload systems, and authentication flows in a custom PHP project. The purpose here is not meaning, but length and structure. Keep adding enough text so the validator accepts it without errors while still looking like something close to a real article body for practical API testing.",
+  "postStatus": "draft"
+}
+```
+
+Valid payload with featured image:
+
+```json
+{
+  "postTitle": "Building Uploads and Posts Together in a Simple PHP API",
+  "postBody": "This sample post body is written to test the relationship between posts and uploaded media in your backend. The featured image should be sent as an upload id, not a URL, and the excerpt can be omitted because the controller now generates it from the opening part of the content. This text is intentionally long so it satisfies the minimum body validation and also gives the excerpt generator enough words to work with when creating a short summary automatically from the first section of the body content for storage in the database during creation.",
+  "featuredImage": 1,
+  "postStatus": "published"
+}
+```
+
+### Edit post
+
+```json
+{
+  "postId": 1,
+  "postTitle": "Updated Custom PHP Blog Architecture for Better Maintainability",
+  "postBody": "This is an updated post body that is intentionally long enough to pass the current validation rules. It should contain at least five hundred characters so that the API accepts it as valid content. The purpose of this payload is to test the patch endpoint and confirm that title, content, excerpt, featured image, and status updates all work correctly under the authenticated author flow. Keep the text long enough so that body length is not the reason for failure. This also helps validate slug regeneration and the optional excerpt handling used in the current controller logic.",
+  "postExcerpt": "This is a manually supplied excerpt that should pass the minimum and maximum limits for the update endpoint during testing.",
+  "featuredImage": 1,
+  "postStatus": "published"
+}
+```
+
+### Delete post
+
+```json
+{
+  "postId": 1
+}
+```
+
+### Public list and search
+
+```text
+GET /api/posts?page=1&limit=10
+GET /api/posts/single?id=1
+GET /api/posts/search?query=php&page=1&limit=10
+```
+
+### Authenticated author-only reads
+
+```text
+GET /api/posts/me?page=1&limit=10
+GET /api/posts/me/single?id=1
+```
 
 ## What a Backend README Should Usually Contain
 
