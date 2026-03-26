@@ -550,6 +550,8 @@ Required auth:
 - `Authorization: Bearer <jwt>`
 - `refreshToken` cookie
 - `user_role` must be `author` or `admin`
+- `user_role` must be `author` or `admin`
+- `user_role` must be `author` or `admin`
 
 Query parameters:
 
@@ -578,6 +580,8 @@ Required auth:
 
 - `Authorization: Bearer <jwt>`
 - `refreshToken` cookie
+- `user_role` must be `author` or `admin`
+- `user_role` must be `author` or `admin`
 - `user_role` must be `author` or `admin`
 
 Query parameters:
@@ -1084,7 +1088,6 @@ The exact schema is not included in the repository, but the following fields are
 
 These are useful for anyone integrating against the API:
 
-- Refresh token validation logic needs cleanup
 - Config and secrets are hardcoded instead of using environment variables
 - No schema or migration files are included
 - No automated test suite is included

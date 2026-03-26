@@ -250,5 +250,4 @@ This file records the major logic and structural issues found during review, the
 
 - PHP syntax check result: no syntax errors across the project at the time of this log.
 - Remaining lower-priority items:
-  - the method name `vaildateToken` is still misspelled
   - there is still no public or protected single-upload GET endpoint exposed through `routes.php`

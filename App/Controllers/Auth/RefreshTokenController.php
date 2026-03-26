@@ -16,7 +16,7 @@ class RefreshTokenController
         $this->userModel = $userModel;
     }
 
-    public function vaildateToken()
+    public function validateToken()
     {
         if (!isset($_COOKIE['refreshToken']) || empty($_COOKIE['refreshToken'])) {
             sendResponse(401, "A refresh token cookie is required.");
@@ -62,6 +62,6 @@ class RefreshTokenController
     }
     public function handle()
     {
-        $this->vaildateToken();
+        $this->validateToken();
     }
 }
