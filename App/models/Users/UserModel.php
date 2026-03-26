@@ -23,7 +23,7 @@ class UserModel
             sendResponse(409, "This username is already taken.");
         }
         try {
-            $data['user_role'] = 'admin';
+            $data['user_role'] = 'author';
             $data['status'] = 'pending_approval';
             $sql = "INSERT INTO `users`(`username`, `email`, `password`, `user_role`, `status`) VALUES (:username ,  :email , :password , :user_role, :status)";
             $this->connection->Query($sql, $data);
