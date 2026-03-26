@@ -370,7 +370,7 @@ Success response shape:
         "post_slug": "my-third-post",
         "post_content": "Post body here...",
         "post_excerpt": "Post excerpt here...",
-        "post_featured_image": "12",
+        "post_featured_image": "http://localhost:8000/uploads/example-3.png",
         "author_id": 1,
         "post_status": "published",
         "created_at": "2026-03-24 10:00:00",
@@ -419,7 +419,7 @@ Success response:
     "post_slug": "my-first-post",
     "post_content": "Post body here...",
     "post_excerpt": "Post excerpt here...",
-    "post_featured_image": "12",
+    "post_featured_image": "http://localhost:8000/uploads/example-1.png",
     "author_id": 1,
     "post_status": "published",
     "created_at": "2026-03-24 10:00:00",
@@ -463,7 +463,7 @@ Success response:
     "post_slug": "my-first-post",
     "post_content": "Post body here...",
     "post_excerpt": "Post excerpt here...",
-    "post_featured_image": "12",
+    "post_featured_image": "http://localhost:8000/uploads/example-1.png",
     "author_id": 1,
     "post_status": "published",
     "created_at": "2026-03-24 10:00:00",
@@ -512,7 +512,7 @@ Success response shape:
         "post_slug": "custom-php-authentication-guide",
         "post_content": "Post body here...",
         "post_excerpt": "Excerpt here...",
-        "post_featured_image": "1",
+        "post_featured_image": "http://localhost:8000/uploads/example-1.png",
         "author_id": 1,
         "post_status": "published",
         "created_at": "2026-03-25 10:00:00",
@@ -550,8 +550,6 @@ Required auth:
 - `Authorization: Bearer <jwt>`
 - `refreshToken` cookie
 - `user_role` must be `author` or `admin`
-- `user_role` must be `author` or `admin`
-- `user_role` must be `author` or `admin`
 
 Query parameters:
 
@@ -580,8 +578,6 @@ Required auth:
 
 - `Authorization: Bearer <jwt>`
 - `refreshToken` cookie
-- `user_role` must be `author` or `admin`
-- `user_role` must be `author` or `admin`
 - `user_role` must be `author` or `admin`
 
 Query parameters:
@@ -665,7 +661,7 @@ Success response:
     "post_slug": "a-sufficiently-long-blog-title",
     "post_content": "Main post content...",
     "post_excerpt": "Optional summary...",
-    "post_featured_image": "12",
+    "post_featured_image": "http://localhost:8000/uploads/example-12.png",
     "author_id": 1,
     "post_status": "draft"
   }
