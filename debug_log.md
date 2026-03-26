@@ -246,6 +246,38 @@ This file records the major logic and structural issues found during review, the
 - Fix:
   - Renamed them to `MiddlewareKernel` and `UploadsModel`, and updated imports and constructor type hints throughout the codebase.
 
+## 24. Logout currently depends on a non-expired access token
+
+- Issue:
+  - The logout route runs behind `auth` middleware, so a user with an expired JWT cannot complete server-side logout even if the `refreshToken` cookie is still valid.
+- Affected files:
+  - `D:\Blog\routes.php:124`
+  - `D:\Blog\App\Core\Middlewares\AuthMiddleware.php:40`
+  - `D:\Blog\App\Controllers\Auth\LogoutController.php:16`
+- Fix:
+  - Added a dedicated `logout` middleware that requires a bearer token plus refresh-token cookie, but does not block logout when the bearer token is expired.
+
+## 25. Upload creation still misses some PHP upload error guards
+
+- Issue:
+  - Upload creation assumes each uploaded file has a valid extension and a successful PHP upload state. Requests with missing extensions or failed upload errors can hit warning paths before reaching a clean API response.
+- Affected files:
+  - `D:\Blog\App\Controllers\Uploads\AddUploadController.php:52`
+  - `D:\Blog\App\Controllers\Uploads\AddUploadController.php:56`
+  - `D:\Blog\App\Controllers\Uploads\AddUploadController.php:57`
+  - `D:\Blog\App\Controllers\Uploads\AddUploadController.php:58`
+- Fix:
+  - Upload creation now checks the PHP upload error code, requires a valid uploaded temporary file, and rejects files without a usable extension before image validation runs.
+
+## 26. Post creation response shape is inconsistent with post read responses
+
+- Issue:
+  - Post read endpoints now resolve `post_featured_image` to an absolute image URL, but post creation still returns the stored upload id string for the same field.
+- Affected files:
+  - `D:\Blog\App\Controllers\Posts\CreatePostController.php:98`
+- Fix:
+  - Post creation now returns `post_featured_image` as an absolute URL or `null`, matching the post read endpoints.
+
 ## Current status
 
 - PHP syntax check result: no syntax errors across the project at the time of this log.

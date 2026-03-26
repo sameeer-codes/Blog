@@ -47,18 +47,42 @@ class AddUploadController
             $date = new DateTime();
             $date = $date->format("d-m-Y-H-i-s-v");
 
-            $filename = preg_replace('/[^a-zA-Z0-9._-]/', '', strtolower($this->files['name'][$i])); // safe file name
+            $originalFilename = (string) ($this->files['name'][$i] ?? '');
+            $filename = preg_replace('/[^a-zA-Z0-9._-]/', '', strtolower($originalFilename)); // safe file name
+            $filename = $filename !== '' ? $filename : ('upload-' . $date);
+            $uploadError = $this->files['error'][$i] ?? UPLOAD_ERR_NO_FILE;
+            $temp = $this->files['tmp_name'][$i] ?? '';
+
+            if ($uploadError !== UPLOAD_ERR_OK || empty($temp) || !is_uploaded_file($temp)) {
+                $this->uploads[] = [
+                    "filename" => $originalFilename !== '' ? $originalFilename : $filename,
+                    "success" => false,
+                    'base_path' => null,
+                    'message' => "The uploaded file is invalid or incomplete."
+                ];
+                continue;
+            }
+
             $filepath = pathinfo($this->uploadDir . '/' . basename($filename)); // Exact path to the file
+            if (!array_key_exists('extension', $filepath) || trim($filepath['extension']) === '') {
+                $this->uploads[] = [
+                    "filename" => $originalFilename !== '' ? $originalFilename : $filename,
+                    "success" => false,
+                    'base_path' => null,
+                    'message' => "The uploaded file must include a valid image extension."
+                ];
+                continue;
+            }
+
             $fileExtension = $filepath['extension']; //File Extension
             $updatedFileName = $filepath['filename'] . "-$date" . '.' . $fileExtension; // Updated Filename
             $updatedFilePath = $filepath['dirname'] . "/" . $updatedFileName; // Updated Filename
             $filesize = $this->files['size'][$i];
-            $temp = $this->files['tmp_name'][$i];
             $mimeType = $finfo->file($temp);
             $isvalid = validImage($temp, $filesize, $fileExtension);
             if (!$isvalid) {
                 $this->uploads[] = [
-                    "filename" => $filename,
+                    "filename" => $originalFilename !== '' ? $originalFilename : $filename,
                     "success" => false,
                     'base_path' => null,
                     'message' => "Upload a valid image under 20MB. Accepted types: png, jpg, jpeg, webp, gif."
@@ -76,14 +100,14 @@ class AddUploadController
                 ];
                 if ($this->uploadsModel->addUpload($params)) {
                     $this->uploads[] = [
-                        "filename" => $filename,
+                        "filename" => $originalFilename !== '' ? $originalFilename : $filename,
                         "success" => true,
                         'base_path' => absoluteUrl($this->uploadspath . "/" . $updatedFileName),
                         'message' => "File uploaded successfully."
                     ];
                 } else {
                     $this->uploads[] = [
-                        "filename" => $filename,
+                        "filename" => $originalFilename !== '' ? $originalFilename : $filename,
                         "success" => false,
                         'base_path' => null,
                         'message' => "The file upload could not be saved. Please try again."

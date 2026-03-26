@@ -121,7 +121,7 @@ $router->post(
     '/api/auth/logout',
     [LogoutController::class, 'handle'],
     [$refreshTokenModel]
-)->attachMiddleware(['auth']);
+)->attachMiddleware(['logout']);
 
 $router->post(
     '/api/uploads',

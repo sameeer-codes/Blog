@@ -274,12 +274,13 @@ Possible error cases:
 
 Logs out the current browser session by revoking the stored refresh token and clearing the `refreshToken` cookie.
 
-Auth: `auth` middleware
+Auth: `logout` middleware
 
 How parameters must be passed:
 
 - Send `Authorization: Bearer <jwt>`
 - Requires the `refreshToken` cookie
+- The bearer token may be expired, but it must still be present and validly signed
 
 Behavior:
 
@@ -648,6 +649,7 @@ Behavior:
 - Auto-generated excerpts that are trimmed end with `...`
 - If `featuredImage` is provided, the upload must exist and belong to the authenticated user
 - Stores post data in the `posts` table using the real table columns
+- Returns `post_featured_image` as an absolute URL in the response when a featured image is attached
 
 Success response:
 

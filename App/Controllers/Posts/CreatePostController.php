@@ -73,6 +73,7 @@ class CreatePostController
     {
         $this->validatePost();
         $postExcerpt = array_key_exists('postExcerpt', $this->postData) ? trim(strip_tags($this->postData['postExcerpt'])) : '';
+        $featuredImageUrl = null;
         if (empty($postExcerpt)) {
             $postExcerpt = $this->generateExcerpt($this->postData['postBody']);
         }
@@ -88,6 +89,8 @@ class CreatePostController
             if ((int) $featuredImage['user_id'] !== (int) Auth::id()) {
                 sendResponse(403, "You do not have permission to use this upload as the featured image.");
             }
+
+            $featuredImageUrl = absoluteUrl($featuredImage['base_path']);
         }
 
         $this->postParams = [
@@ -101,7 +104,9 @@ class CreatePostController
         ];
 
         if ($this->postsModel->createPost($this->postParams)) {
-            sendResponse(201, "Post created successfully.", $this->postParams);
+            $responseData = $this->postParams;
+            $responseData['post_featured_image'] = $featuredImageUrl;
+            sendResponse(201, "Post created successfully.", $responseData);
         }
     }
 }
