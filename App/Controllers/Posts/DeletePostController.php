@@ -26,14 +26,14 @@ class DeletePostController
             ]);
         }
 
-        if (array_key_exists('postId', $this->inputs)) {
-            $this->postId = $this->inputs['postId'];
+        if (array_key_exists('post_id', $this->inputs)) {
+            $this->postId = $this->inputs['post_id'];
         } else {
-            sendResponse(400, "The postId field is required.");
+            sendResponse(400, "The post_id field is required.");
         }
 
         if (!is_int($this->postId) || $this->postId < 1) {
-            sendResponse(422, "The postId field must be a valid integer.");
+            sendResponse(422, "The post_id field must be a valid integer.");
         }
 
         $this->post = $this->postModel->getAuthorPostById([

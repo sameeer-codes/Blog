@@ -72,15 +72,15 @@ class CreatePostController
     public function index()
     {
         $this->validatePost();
-        $postExcerpt = array_key_exists('postExcerpt', $this->postData) ? trim(strip_tags($this->postData['postExcerpt'])) : '';
+        $postExcerpt = array_key_exists('post_excerpt', $this->postData) ? trim(strip_tags($this->postData['post_excerpt'])) : '';
         $featuredImageUrl = null;
         if (empty($postExcerpt)) {
-            $postExcerpt = $this->generateExcerpt($this->postData['postBody']);
+            $postExcerpt = $this->generateExcerpt($this->postData['post_body']);
         }
 
         $postFeaturedImage = null;
-        if (array_key_exists('featuredImage', $this->postData) && $this->postData['featuredImage'] !== null && $this->postData['featuredImage'] !== '') {
-            $postFeaturedImage = (int) $this->postData['featuredImage'];
+        if (array_key_exists('featured_image', $this->postData) && $this->postData['featured_image'] !== null && $this->postData['featured_image'] !== '') {
+            $postFeaturedImage = (int) $this->postData['featured_image'];
             $featuredImage = $this->uploadsModel->getUploadById(['id' => $postFeaturedImage]);
             if (!$featuredImage) {
                 sendResponse(404, "The featured image upload was not found.");
@@ -94,13 +94,13 @@ class CreatePostController
         }
 
         $this->postParams = [
-            'post_title' => trim(strip_tags($this->postData['postTitle'])),
-            'post_slug' => $this->resolveUniqueSlug($this->postData['postTitle']),
-            'post_content' => trim($this->postData['postBody']),
+            'post_title' => trim(strip_tags($this->postData['post_title'])),
+            'post_slug' => $this->resolveUniqueSlug($this->postData['post_title']),
+            'post_content' => trim($this->postData['post_body']),
             'post_excerpt' => $postExcerpt,
             'post_featured_image' => $postFeaturedImage !== null ? (string) $postFeaturedImage : null,
             'author_id' => Auth::id(),
-            'post_status' => trim($this->postData['postStatus']),
+            'post_status' => trim($this->postData['post_status']),
         ];
 
         if ($this->postsModel->createPost($this->postParams)) {

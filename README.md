@@ -151,6 +151,7 @@ Rules used in this codebase:
 - `POST`, `PUT`, `PATCH`, and `DELETE` routes that accept structured data read parameters from the JSON body unless the endpoint is a file upload
 - Upload creation uses `multipart/form-data`
 - Authenticated routes require the `Authorization: Bearer <jwt>` header and the `refreshToken` cookie unless the route documentation says otherwise
+- JSON field naming is `snake_case`
 
 ## API Endpoints
 
@@ -613,41 +614,41 @@ Request body:
 
 ```json
 {
-  "postTitle": "A sufficiently long blog title...",
-  "postBody": "Main post content...",
-  "postExcerpt": "Optional summary...",
-  "featuredImage": 12,
-  "postStatus": "draft"
+  "post_title": "A sufficiently long blog title...",
+  "post_body": "Main post content...",
+  "post_excerpt": "Optional summary...",
+  "featured_image": 12,
+  "post_status": "draft"
 }
 ```
 
 Required fields:
 
-- `postTitle`
-- `postBody`
-- `postStatus`
+- `post_title`
+- `post_body`
+- `post_status`
 
 Optional fields:
 
-- `postExcerpt`
-- `featuredImage`
+- `post_excerpt`
+- `featured_image`
 
 Validation:
 
-- `postTitle`: required, `30` to `200` characters
-- `postBody`: required, `500` to `4999` characters
-- `postExcerpt`: optional, `100` to `299` characters when provided
-- `featuredImage`: optional, must be a valid positive upload id when provided
-- `postStatus`: required, must be one of `draft`, `published`, `archived`
+- `post_title`: required, `30` to `200` characters
+- `post_body`: required, `500` to `4999` characters
+- `post_excerpt`: optional, `100` to `299` characters when provided
+- `featured_image`: optional, must be a valid positive upload id when provided
+- `post_status`: required, must be one of `draft`, `published`, `archived`
 
 Behavior:
 
-- Generates `post_slug` from `postTitle`
+- Generates `post_slug` from `post_title`
 - If the generated slug already exists, appends a numeric suffix such as `-2`, `-3`, and so on until a unique slug is found
 - Uses the authenticated user as `author_id`
-- If `postExcerpt` is not provided, it is generated from the first part of `postBody`
+- If `post_excerpt` is not provided, it is generated from the first part of `post_body`
 - Auto-generated excerpts that are trimmed end with `...`
-- If `featuredImage` is provided, the upload must exist and belong to the authenticated user
+- If `featured_image` is provided, the upload must exist and belong to the authenticated user
 - Stores post data in the `posts` table using the real table columns
 - Returns `post_featured_image` as an absolute URL in the response when a featured image is attached
 
@@ -692,42 +693,42 @@ Required auth:
 How parameters must be passed:
 
 - Send `Content-Type: application/json`
-- Pass `postId` and any fields to change in the JSON request body
+- Pass `post_id` and any fields to change in the JSON request body
 
 Request body:
 
 ```json
 {
-  "postId": 1,
-  "postTitle": "Updated Custom PHP Blog Architecture for Better Maintainability",
-  "postBody": "Updated post body content...",
-  "postExcerpt": "Updated summary...",
-  "featuredImage": 1,
-  "postStatus": "published"
+  "post_id": 1,
+  "post_title": "Updated Custom PHP Blog Architecture for Better Maintainability",
+  "post_body": "Updated post body content...",
+  "post_excerpt": "Updated summary...",
+  "featured_image": 1,
+  "post_status": "published"
 }
 ```
 
 Behavior:
 
-- `postId` is required
+- `post_id` is required
 - Only the authenticated author can update the post
-- All editable fields are optional except `postId`
-- If `postTitle` changes, `post_slug` is regenerated and resolved to a unique slug if needed
-- If `postExcerpt` is empty and `postBody` is updated, an excerpt is generated automatically
-- `featuredImage` may be set to `null` or empty to remove it
+- All editable fields are optional except `post_id`
+- If `post_title` changes, `post_slug` is regenerated and resolved to a unique slug if needed
+- If `post_excerpt` is empty and `post_body` is updated, an excerpt is generated automatically
+- `featured_image` may be set to `null` or empty to remove it
 
 Validation:
 
-- `postId`: required, valid integer greater than `0`
-- `postTitle`: optional, `30` to `200` characters
-- `postBody`: optional, `500` to `4999` characters
-- `postExcerpt`: optional, `100` to `299` characters when provided as text
-- `featuredImage`: optional, valid upload id when provided
-- `postStatus`: optional, one of `draft`, `published`, `archived`
+- `post_id`: required, valid integer greater than `0`
+- `post_title`: optional, `30` to `200` characters
+- `post_body`: optional, `500` to `4999` characters
+- `post_excerpt`: optional, `100` to `299` characters when provided as text
+- `featured_image`: optional, valid upload id when provided
+- `post_status`: optional, one of `draft`, `published`, `archived`
 
 Possible error cases:
 
-- `400`: missing `postId`
+- `400`: missing `post_id`
 - `400`: no fields were provided to update
 - `422`: invalid field values
 - `403`: post does not belong to the authenticated user
@@ -750,20 +751,20 @@ Required auth:
 How parameters must be passed:
 
 - Send `Content-Type: application/json`
-- Pass `postId` in the JSON request body
+- Pass `post_id` in the JSON request body
 
 Request body:
 
 ```json
 {
-  "postId": 1
+  "post_id": 1
 }
 ```
 
 Possible error cases:
 
-- `400`: missing `postId`
-- `422`: invalid `postId`
+- `400`: missing `post_id`
+- `422`: invalid `post_id`
 - `403`: post does not belong to the authenticated user
 - `404`: post not found
 - `500`: delete failed
@@ -778,6 +779,7 @@ Required auth:
 
 - `Authorization: Bearer <jwt>`
 - `refreshToken` cookie
+- `user_role` must be `author` or `admin`
 - `user_role` must be `author` or `admin`
 
 Request content type:
@@ -850,6 +852,7 @@ Required auth:
 
 - `Authorization: Bearer <jwt>`
 - `refreshToken` cookie
+- `user_role` must be `author` or `admin`
 - `user_role` must be `author` or `admin`
 
 Query parameters:
@@ -1109,9 +1112,9 @@ Minimal valid payload:
 
 ```json
 {
-  "postTitle": "How I Structured My First Custom PHP Blog Backend",
-  "postBody": "This is a long dummy post body meant for testing the create post endpoint. To make it pass the current validation, the content needs to be at least five hundred characters long. So this sample keeps going with realistic filler text about building routes, controllers, models, middleware, upload systems, and authentication flows in a custom PHP project. The purpose here is not meaning, but length and structure. Keep adding enough text so the validator accepts it without errors while still looking like something close to a real article body for practical API testing.",
-  "postStatus": "draft"
+  "post_title": "How I Structured My First Custom PHP Blog Backend",
+  "post_body": "This is a long dummy post body meant for testing the create post endpoint. To make it pass the current validation, the content needs to be at least five hundred characters long. So this sample keeps going with realistic filler text about building routes, controllers, models, middleware, upload systems, and authentication flows in a custom PHP project. The purpose here is not meaning, but length and structure. Keep adding enough text so the validator accepts it without errors while still looking like something close to a real article body for practical API testing.",
+  "post_status": "draft"
 }
 ```
 
@@ -1119,10 +1122,10 @@ Valid payload with featured image:
 
 ```json
 {
-  "postTitle": "Building Uploads and Posts Together in a Simple PHP API",
-  "postBody": "This sample post body is written to test the relationship between posts and uploaded media in your backend. The featured image should be sent as an upload id, not a URL, and the excerpt can be omitted because the controller now generates it from the opening part of the content. This text is intentionally long so it satisfies the minimum body validation and also gives the excerpt generator enough words to work with when creating a short summary automatically from the first section of the body content for storage in the database during creation.",
-  "featuredImage": 1,
-  "postStatus": "published"
+  "post_title": "Building Uploads and Posts Together in a Simple PHP API",
+  "post_body": "This sample post body is written to test the relationship between posts and uploaded media in your backend. The featured image should be sent as an upload id, not a URL, and the excerpt can be omitted because the controller now generates it from the opening part of the content. This text is intentionally long so it satisfies the minimum body validation and also gives the excerpt generator enough words to work with when creating a short summary automatically from the first section of the body content for storage in the database during creation.",
+  "featured_image": 1,
+  "post_status": "published"
 }
 ```
 
@@ -1130,12 +1133,12 @@ Valid payload with featured image:
 
 ```json
 {
-  "postId": 1,
-  "postTitle": "Updated Custom PHP Blog Architecture for Better Maintainability",
-  "postBody": "This is an updated post body that is intentionally long enough to pass the current validation rules. It should contain at least five hundred characters so that the API accepts it as valid content. The purpose of this payload is to test the patch endpoint and confirm that title, content, excerpt, featured image, and status updates all work correctly under the authenticated author flow. Keep the text long enough so that body length is not the reason for failure. This also helps validate slug regeneration and the optional excerpt handling used in the current controller logic.",
-  "postExcerpt": "This is a manually supplied excerpt that should pass the minimum and maximum limits for the update endpoint during testing.",
-  "featuredImage": 1,
-  "postStatus": "published"
+  "post_id": 1,
+  "post_title": "Updated Custom PHP Blog Architecture for Better Maintainability",
+  "post_body": "This is an updated post body that is intentionally long enough to pass the current validation rules. It should contain at least five hundred characters so that the API accepts it as valid content. The purpose of this payload is to test the patch endpoint and confirm that title, content, excerpt, featured image, and status updates all work correctly under the authenticated author flow. Keep the text long enough so that body length is not the reason for failure. This also helps validate slug regeneration and the optional excerpt handling used in the current controller logic.",
+  "post_excerpt": "This is a manually supplied excerpt that should pass the minimum and maximum limits for the update endpoint during testing.",
+  "featured_image": 1,
+  "post_status": "published"
 }
 ```
 
@@ -1143,7 +1146,7 @@ Valid payload with featured image:
 
 ```json
 {
-  "postId": 1
+  "post_id": 1
 }
 ```
 

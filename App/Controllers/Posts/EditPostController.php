@@ -73,14 +73,14 @@ class EditPostController
             ]);
         }
 
-        if (array_key_exists('postId', $this->inputs)) {
-            $this->postId = $this->inputs['postId'];
+        if (array_key_exists('post_id', $this->inputs)) {
+            $this->postId = $this->inputs['post_id'];
         } else {
-            sendResponse(400, "The postId field is required.");
+            sendResponse(400, "The post_id field is required.");
         }
 
         if (!is_int($this->postId) || $this->postId < 1) {
-            sendResponse(422, "The postId field must be a valid integer.");
+            sendResponse(422, "The post_id field must be a valid integer.");
         }
 
         $this->post = $this->postModel->getAuthorPostById([
@@ -92,25 +92,25 @@ class EditPostController
             sendResponse(404, "No post was found for the provided id.");
         }
 
-        if (array_key_exists('postTitle', $this->inputs) && trim((string) $this->inputs['postTitle']) !== '') {
-            $postTitle = trim(strip_tags((string) $this->inputs['postTitle']));
+        if (array_key_exists('post_title', $this->inputs) && trim((string) $this->inputs['post_title']) !== '') {
+            $postTitle = trim(strip_tags((string) $this->inputs['post_title']));
             if (strlen($postTitle) < 30 || strlen($postTitle) > 200) {
-                sendResponse(422, "postTitle must be between 30 and 200 characters.");
+                sendResponse(422, "post_title must be between 30 and 200 characters.");
             }
             $this->updateData['post_title'] = $postTitle;
             $this->updateData['post_slug'] = $this->resolveUniqueSlug($postTitle, $this->postId);
         }
 
-        if (array_key_exists('postBody', $this->inputs) && trim((string) $this->inputs['postBody']) !== '') {
-            $postBody = trim((string) $this->inputs['postBody']);
+        if (array_key_exists('post_body', $this->inputs) && trim((string) $this->inputs['post_body']) !== '') {
+            $postBody = trim((string) $this->inputs['post_body']);
             if (strlen($postBody) < 500 || strlen($postBody) >= 5000) {
-                sendResponse(422, "postBody must be between 500 and 4999 characters.");
+                sendResponse(422, "post_body must be between 500 and 4999 characters.");
             }
             $this->updateData['post_content'] = $postBody;
         }
 
-        if (array_key_exists('postExcerpt', $this->inputs)) {
-            $postExcerpt = trim(strip_tags((string) $this->inputs['postExcerpt']));
+        if (array_key_exists('post_excerpt', $this->inputs)) {
+            $postExcerpt = trim(strip_tags((string) $this->inputs['post_excerpt']));
             if ($postExcerpt === '') {
                 if (array_key_exists('post_content', $this->updateData)) {
                     $postExcerpt = $this->generateExcerpt($this->updateData['post_content']);
@@ -118,18 +118,18 @@ class EditPostController
                     $postExcerpt = null;
                 }
             } else if (strlen($postExcerpt) < 100 || strlen($postExcerpt) >= 300) {
-                sendResponse(422, "postExcerpt must be between 100 and 299 characters.");
+                sendResponse(422, "post_excerpt must be between 100 and 299 characters.");
             }
             $this->updateData['post_excerpt'] = $postExcerpt;
         }
 
-        if (array_key_exists('featuredImage', $this->inputs)) {
-            if ($this->inputs['featuredImage'] === null || $this->inputs['featuredImage'] === '') {
+        if (array_key_exists('featured_image', $this->inputs)) {
+            if ($this->inputs['featured_image'] === null || $this->inputs['featured_image'] === '') {
                 $this->updateData['post_featured_image'] = null;
             } else {
-                $featuredImage = $this->inputs['featuredImage'];
+                $featuredImage = $this->inputs['featured_image'];
                 if (!is_int($featuredImage) || $featuredImage < 1) {
-                    sendResponse(422, "featuredImage must be a valid upload id.");
+                    sendResponse(422, "featured_image must be a valid upload id.");
                 }
 
                 $upload = $this->uploadsModel->getUploadById([
@@ -147,11 +147,11 @@ class EditPostController
             }
         }
 
-        if (array_key_exists('postStatus', $this->inputs) && trim((string) $this->inputs['postStatus']) !== '') {
-            $postStatus = trim((string) $this->inputs['postStatus']);
+        if (array_key_exists('post_status', $this->inputs) && trim((string) $this->inputs['post_status']) !== '') {
+            $postStatus = trim((string) $this->inputs['post_status']);
             $validStatuses = ['draft', 'published', 'archived'];
             if (!in_array($postStatus, $validStatuses, true)) {
-                sendResponse(422, "postStatus must be one of: draft, published, archived");
+                sendResponse(422, "post_status must be one of: draft, published, archived");
             }
             $this->updateData['post_status'] = $postStatus;
         }

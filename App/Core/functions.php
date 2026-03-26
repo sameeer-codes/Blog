@@ -98,10 +98,9 @@ function human_filesize($bytes, $decimals = 2)
     return sprintf("%.{$decimals}f", $bytes / pow(1024, $factor)) . @$sz[$factor - 1] . 'B';
 }
 
-
 function validatePost($postData)
 {
-    $requiredData = ['postTitle', 'postBody', 'postStatus'];
+    $requiredData = ['post_title', 'post_body', 'post_status'];
     $errors = [];
     if (!is_array($postData)) {
         return [
@@ -119,7 +118,7 @@ function validatePost($postData)
     if (count($errors) === 0) {
         foreach ($postData as $key => $value) {
             switch ($key) {
-                case 'postTitle': {
+                case 'post_title': {
                     $value = strip_tags($value);
                     if (strlen($value) < 30 || strlen($value) > 200) {
                         $errors[$key] = 'Post Title must be a minimum of 30 characters and maximum 200 characters';
@@ -127,7 +126,7 @@ function validatePost($postData)
                     break;
                 }
 
-                case 'postBody': {
+                case 'post_body': {
                     $value = trim($value);
                     if (strlen($value) < 500 || strlen($value) >= 5000) {
                         $errors[$key] = "Post Content must be a minimum of 500 characters and maximum 5000 characters";
@@ -135,7 +134,7 @@ function validatePost($postData)
                     break;
                 }
 
-                case 'postExcerpt': {
+                case 'post_excerpt': {
                     $value = trim(strip_tags($value));
                     if (!empty($value) && (strlen($value) < 100 || strlen($value) >= 300)) {
                         $errors[$key] = "Excert can only be 100 characters minimum and 300 characters maximum";
@@ -143,20 +142,20 @@ function validatePost($postData)
                     break;
                 }
 
-                case 'featuredImage': {
+                case 'featured_image': {
                     if ($value !== null && $value !== '' && (!is_int($value) || $value < 1)) {
-                        $errors[$key] = "featuredImage must be a valid upload id";
+                        $errors[$key] = "featured_image must be a valid upload id";
                     }
                     break;
                 }
 
-                case 'postStatus': {
+                case 'post_status': {
                     $value = trim($value);
                     $validStatuses = ['draft', 'published', 'archived'];
                     if (empty($value)) {
-                        $errors[$key] = "postStatus is required";
+                        $errors[$key] = "post_status is required";
                     } else if (!in_array($value, $validStatuses, true)) {
-                        $errors[$key] = "postStatus must be one of: draft, published, archived";
+                        $errors[$key] = "post_status must be one of: draft, published, archived";
                     }
                     break;
                 }
