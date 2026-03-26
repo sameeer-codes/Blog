@@ -25,6 +25,12 @@ class EditUploadController
 
     public function editUpload()
     {
+        if (!is_array($this->inputs)) {
+            sendResponse(422, "The upload payload is invalid.", [
+                'payload' => 'A valid JSON object is required'
+            ]);
+        }
+
         if (array_key_exists('id', $this->inputs)) {
             $this->id = $this->inputs["id"];
         } else {

@@ -162,6 +162,25 @@ This file records the major logic and structural issues found during review, the
     - `base_path`
     - `message`
 
+## 16. Upload edit and delete did not guard malformed JSON bodies
+
+- Issue:
+  - Upload edit and delete controllers decoded JSON bodies and immediately accessed keys without verifying that the payload was a valid JSON object.
+- Affected files:
+  - `D:\Blog\App\Controllers\Uploads\DeleteUploadController.php:23`
+  - `D:\Blog\App\Controllers\Uploads\EditUploadController.php:26`
+- Fix:
+  - Added JSON-object validation at the start of both controllers and return `422` when the payload is malformed.
+
+## 17. README public single-post example showed the wrong status
+
+- Issue:
+  - The documented example for `GET /api/posts/single` showed a `draft` post even though the endpoint only returns `published` posts.
+- Affected files:
+  - `D:\Blog\README.md:395`
+- Fix:
+  - Updated the example response so `post_status` is `published`.
+
 ## Current status
 
 - PHP syntax check result: no syntax errors across the project at the time of this log.

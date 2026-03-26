@@ -407,7 +407,7 @@ Success response:
     "post_excerpt": "Post excerpt here...",
     "post_featured_image": "12",
     "author_id": 1,
-    "post_status": "draft",
+    "post_status": "published",
     "created_at": "2026-03-24 10:00:00",
     "updated_at": "2026-03-24 10:00:00"
   }
