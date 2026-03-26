@@ -2,7 +2,7 @@
 
 use App\Core\Container;
 use App\Core\Database;
-use App\Core\Middlewares\MiddlewareKernal;
+use App\Core\Middlewares\MiddlewareKernel;
 use App\Core\Router;
 
 $container = new Container();
@@ -13,7 +13,7 @@ $container->setService('Database', function () {
 });
 
 $container->setService('Middleware', function () {
-    $middleware = new MiddlewareKernal();
+    $middleware = new MiddlewareKernel();
     return $middleware;
 });
 

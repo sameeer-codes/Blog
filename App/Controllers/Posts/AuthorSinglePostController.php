@@ -29,7 +29,7 @@ class AuthorSinglePostController
 
         $post = $this->postModel->getAuthorPostById([
             'post_id' => $this->postId,
-            'author_id' => Auth::user(),
+            'author_id' => Auth::id(),
         ]);
 
         if ($post) {

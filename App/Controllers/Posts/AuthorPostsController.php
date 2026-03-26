@@ -32,11 +32,11 @@ class AuthorPostsController
 
         $this->offset = ($this->page - 1) * $this->limit;
         $totalPosts = $this->postModel->countAuthorPosts([
-            'author_id' => Auth::user(),
+            'author_id' => Auth::id(),
         ]);
 
         $posts = $this->postModel->getAuthorPosts([
-            'author_id' => Auth::user(),
+            'author_id' => Auth::id(),
             'limit' => $this->limit,
             'offset' => $this->offset,
         ]);

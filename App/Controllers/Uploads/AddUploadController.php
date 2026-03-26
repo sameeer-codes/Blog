@@ -2,7 +2,7 @@
 
 namespace App\Controllers\Uploads;
 use App\Core\Auth;
-use App\Models\Uploads\UploadsModal;
+use App\Models\Uploads\UploadsModel;
 use DateTime;
 use finfo;
 
@@ -16,7 +16,7 @@ class AddUploadController
     private $uploadspath;
     private $errors = [];
 
-    public function __construct(UploadsModal $uploadsModel)
+    public function __construct(UploadsModel $uploadsModel)
     {
         $this->files = $_FILES['files'] ?? null;
         $this->uploadsModel = $uploadsModel;
@@ -65,7 +65,7 @@ class AddUploadController
                 ];
             } else if ($this->moveFile($temp, $updatedFilePath)) {
                 $params = [
-                    'user_id' => Auth::user(),
+                    'user_id' => Auth::id(),
                     'uploaded_to' => null,
                     'file_name' => $filename,
                     'base_path' => $this->uploadspath . "/" . $updatedFileName,

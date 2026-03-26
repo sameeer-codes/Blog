@@ -20,7 +20,7 @@ use App\Controllers\Uploads\EditUploadController;
 use App\Controllers\Uploads\GetUploadsController;
 use App\Models\Auth\RefreshTokenModel;
 use App\Models\Posts\PostModel;
-use App\Models\Uploads\UploadsModal;
+use App\Models\Uploads\UploadsModel;
 use App\Models\Users\UserModel;
 
 $container = $GLOBALS['container'];
@@ -31,7 +31,7 @@ $database = $container->getService('Database'); // Database Model
 $userModel = new UserModel($database); // User Model
 $postModel = new PostModel($database); // Post Model
 $refreshTokenModel = new RefreshTokenModel($database); // Refresh Token Model
-$uploadsModel = new UploadsModal($database);
+$uploadsModel = new UploadsModel($database);
 
 $router->get(
     '/',
@@ -85,31 +85,31 @@ $router->get(
     '/api/posts/me',
     [AuthorPostsController::class, 'index'],
     [$postModel]
-)->attachMiddleware(['auth']);
+)->attachMiddleware(['auth', 'author']);
 
 $router->get(
     '/api/posts/me/single',
     [AuthorSinglePostController::class, 'index'],
     [$postModel]
-)->attachMiddleware(['auth']);
+)->attachMiddleware(['auth', 'author']);
 
 $router->post(
     '/api/posts',
     [CreatePostController::class, 'index'],
     [$postModel, $uploadsModel]
-)->attachMiddleware(['auth']);
+)->attachMiddleware(['auth', 'author']);
 
 $router->patch(
     '/api/posts',
     [EditPostController::class, 'index'],
     [$postModel, $uploadsModel]
-)->attachMiddleware(['auth']);
+)->attachMiddleware(['auth', 'author']);
 
 $router->delete(
     '/api/posts',
     [DeletePostController::class, 'index'],
     [$postModel]
-)->attachMiddleware(['auth']);
+)->attachMiddleware(['auth', 'author']);
 
 $router->post(
     '/api/refresh-token',
@@ -121,28 +121,28 @@ $router->post(
     '/api/auth/logout',
     [LogoutController::class, 'handle'],
     [$refreshTokenModel]
-);
+)->attachMiddleware(['auth']);
 
 $router->post(
     '/api/uploads',
     [AddUploadController::class, 'upload'],
     [$uploadsModel]
-)->attachMiddleware(['auth']);
+)->attachMiddleware(['auth', 'author']);
 
 $router->get(
     '/api/uploads',
     [GetUploadsController::class, 'index'],
     [$uploadsModel]
-)->attachMiddleware(['auth']);
+)->attachMiddleware(['auth', 'author']);
 
 $router->delete(
     '/api/uploads',
     [DeleteUploadController::class, 'deleteUpload'],
     [$uploadsModel]
-)->attachMiddleware(['auth']);
+)->attachMiddleware(['auth', 'author']);
 
 $router->patch(
     '/api/uploads',
     [EditUploadController::class, 'editUpload'],
     [$uploadsModel]
-)->attachMiddleware(['auth']);
+)->attachMiddleware(['auth', 'author']);

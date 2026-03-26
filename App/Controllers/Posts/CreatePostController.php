@@ -4,7 +4,7 @@ namespace App\Controllers\Posts;
 
 use App\Core\Auth;
 use App\Models\Posts\PostModel;
-use App\Models\Uploads\UploadsModal;
+use App\Models\Uploads\UploadsModel;
 class CreatePostController
 {
     private $postsModel;
@@ -12,7 +12,7 @@ class CreatePostController
     private $postData;
     private $postParams;
 
-    public function __construct(PostModel $postsModel, UploadsModal $uploadsModel)
+    public function __construct(PostModel $postsModel, UploadsModel $uploadsModel)
     {
         $this->postsModel = $postsModel;
         $this->uploadsModel = $uploadsModel;
@@ -85,7 +85,7 @@ class CreatePostController
                 sendResponse(404, "The featured image upload was not found.");
             }
 
-            if ((int) $featuredImage['user_id'] !== (int) Auth::user()) {
+            if ((int) $featuredImage['user_id'] !== (int) Auth::id()) {
                 sendResponse(403, "You do not have permission to use this upload as the featured image.");
             }
         }
@@ -96,7 +96,7 @@ class CreatePostController
             'post_content' => trim($this->postData['postBody']),
             'post_excerpt' => $postExcerpt,
             'post_featured_image' => $postFeaturedImage !== null ? (string) $postFeaturedImage : null,
-            'author_id' => Auth::user(),
+            'author_id' => Auth::id(),
             'post_status' => trim($this->postData['postStatus']),
         ];
 

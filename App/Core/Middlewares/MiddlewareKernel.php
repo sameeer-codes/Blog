@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Core\Middlewares;
-class MiddlewareKernal
+class MiddlewareKernel
 {
     protected $middlewares = [];
     public function setMiddleware($name, $value)

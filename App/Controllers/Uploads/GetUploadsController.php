@@ -3,7 +3,7 @@
 namespace App\Controllers\Uploads;
 
 use App\Core\Auth;
-use App\Models\Uploads\UploadsModal;
+use App\Models\Uploads\UploadsModel;
 
 class GetUploadsController
 {
@@ -13,10 +13,10 @@ class GetUploadsController
     private $limit;
     private $offset;
 
-    public function __construct(UploadsModal $uploadsModel)
+    public function __construct(UploadsModel $uploadsModel)
     {
         $this->uploadsModel = $uploadsModel;
-        $this->userId = Auth::user();
+        $this->userId = Auth::id();
     }
 
     public function index()

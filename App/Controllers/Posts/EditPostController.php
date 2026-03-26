@@ -4,7 +4,7 @@ namespace App\Controllers\Posts;
 
 use App\Core\Auth;
 use App\Models\Posts\PostModel;
-use App\Models\Uploads\UploadsModal;
+use App\Models\Uploads\UploadsModel;
 
 class EditPostController
 {
@@ -15,7 +15,7 @@ class EditPostController
     private $post;
     private $updateData = [];
 
-    public function __construct(PostModel $postModel, UploadsModal $uploadsModel)
+    public function __construct(PostModel $postModel, UploadsModel $uploadsModel)
     {
         $this->postModel = $postModel;
         $this->uploadsModel = $uploadsModel;
@@ -85,7 +85,7 @@ class EditPostController
 
         $this->post = $this->postModel->getAuthorPostById([
             'post_id' => $this->postId,
-            'author_id' => Auth::user(),
+            'author_id' => Auth::id(),
         ]);
 
         if (!$this->post) {
@@ -139,7 +139,7 @@ class EditPostController
                     sendResponse(404, "The featured image upload was not found.");
                 }
 
-                if ((int) $upload['user_id'] !== (int) Auth::user()) {
+                if ((int) $upload['user_id'] !== (int) Auth::id()) {
                     sendResponse(403, "You do not have permission to use this upload as the featured image.");
                 }
 
@@ -162,7 +162,7 @@ class EditPostController
 
         $result = $this->postModel->updatePost([
             'post_id' => $this->postId,
-            'author_id' => Auth::user(),
+            'author_id' => Auth::id(),
         ] + $this->updateData);
 
         if ($result > 0) {

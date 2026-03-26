@@ -38,7 +38,7 @@ class DeletePostController
 
         $this->post = $this->postModel->getAuthorPostById([
             'post_id' => $this->postId,
-            'author_id' => Auth::user(),
+            'author_id' => Auth::id(),
         ]);
 
         if (!$this->post) {
@@ -47,7 +47,7 @@ class DeletePostController
 
         $result = $this->postModel->deletePost([
             'post_id' => $this->postId,
-            'author_id' => Auth::user(),
+            'author_id' => Auth::id(),
         ]);
 
         if ($result > 0) {

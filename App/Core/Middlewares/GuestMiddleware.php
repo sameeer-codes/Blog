@@ -4,6 +4,7 @@ namespace App\Core\Middlewares;
 
 use App\Core\Database;
 use App\Models\Auth\RefreshTokenModel;
+use App\Models\Users\UserModel;
 
 class GuestMiddleware
 {
@@ -15,6 +16,7 @@ class GuestMiddleware
 
         $database = new Database();
         $refreshTokenModel = new RefreshTokenModel($database);
+        $userModel = new UserModel($database);
         $refreshToken = $refreshTokenModel->getRefreshToken($_COOKIE['refreshToken']);
 
         if (!$refreshToken) {
@@ -25,8 +27,16 @@ class GuestMiddleware
             return;
         }
 
-        if ($refreshToken) {
-            sendResponse(409, "You are already logged in.");
+        $user = $userModel->checkUserById($refreshToken['userid']);
+        if (!$user) {
+            return;
         }
+
+        if ($user['status'] !== 'approved') {
+            $refreshTokenModel->revokeRefreshTokensByUser($user['id']);
+            return;
+        }
+
+        sendResponse(409, "You are already logged in.");
     }
 }

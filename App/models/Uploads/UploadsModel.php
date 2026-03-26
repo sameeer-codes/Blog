@@ -5,7 +5,7 @@ namespace App\Models\Uploads;
 use App\Core\Database;
 use PDOException;
 
-class UploadsModal
+class UploadsModel
 {
     protected $connection;
     protected $requestParams;

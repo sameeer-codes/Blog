@@ -99,6 +99,12 @@ Routes behind `auth` middleware require:
 
 - `Authorization: Bearer <jwt>`
 - `refreshToken` cookie present
+- the refresh token must belong to the same user as the JWT
+- the current database user record must still exist and have `status = approved`
+
+Routes behind `author` middleware additionally require:
+
+- `user_role` to be either `author` or `admin`
 
 ### Guest routes
 
@@ -107,6 +113,7 @@ Routes behind `guest` middleware are intended for unauthenticated users.
 If an already-authenticated user hits a guest-only route, the API returns:
 
 - `409`: `You are already logged in.`
+- guest middleware only blocks when the refresh token is still valid and the current user record is still `approved`
 
 ## Request and Response Format
 
@@ -193,7 +200,7 @@ Behavior:
 
 - Hashes password using `PASSWORD_ARGON2ID`
 - Rejects duplicate email or username
-- Stores `user_role` as `admin`
+- Stores `user_role` as `author`
 - Stores `status` as `pending_approval`
 
 Success response:
@@ -267,11 +274,11 @@ Possible error cases:
 
 Logs out the current browser session by revoking the stored refresh token and clearing the `refreshToken` cookie.
 
-Auth: none at route level
+Auth: `auth` middleware
 
 How parameters must be passed:
 
-- No JSON body is required
+- Send `Authorization: Bearer <jwt>`
 - Requires the `refreshToken` cookie
 
 Behavior:
@@ -542,6 +549,7 @@ Required auth:
 
 - `Authorization: Bearer <jwt>`
 - `refreshToken` cookie
+- `user_role` must be `author` or `admin`
 
 Query parameters:
 
@@ -570,6 +578,7 @@ Required auth:
 
 - `Authorization: Bearer <jwt>`
 - `refreshToken` cookie
+- `user_role` must be `author` or `admin`
 
 Query parameters:
 
@@ -592,6 +601,7 @@ Required auth:
 
 - `Authorization: Bearer <jwt>`
 - `refreshToken` cookie
+- `user_role` must be `author` or `admin`
 
 How parameters must be passed:
 
@@ -675,6 +685,7 @@ Required auth:
 
 - `Authorization: Bearer <jwt>`
 - `refreshToken` cookie
+- `user_role` must be `author` or `admin`
 
 How parameters must be passed:
 
@@ -732,6 +743,7 @@ Required auth:
 
 - `Authorization: Bearer <jwt>`
 - `refreshToken` cookie
+- `user_role` must be `author` or `admin`
 
 How parameters must be passed:
 
@@ -764,6 +776,7 @@ Required auth:
 
 - `Authorization: Bearer <jwt>`
 - `refreshToken` cookie
+- `user_role` must be `author` or `admin`
 
 Request content type:
 
@@ -835,6 +848,7 @@ Required auth:
 
 - `Authorization: Bearer <jwt>`
 - `refreshToken` cookie
+- `user_role` must be `author` or `admin`
 
 Query parameters:
 

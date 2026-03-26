@@ -191,13 +191,64 @@ This file records the major logic and structural issues found during review, the
   - `D:\Blog\App\Controllers\Auth\RefreshTokenController.php:47`
   - `D:\Blog\README.md:151`
 - Fix:
-  - Registration now stores `user_role = admin` and `status = pending_approval`.
+  - Registration now stores `user_role = author` and `status = pending_approval`.
   - Login and refresh-token flows now allow access only when `status = approved`.
   - JWT payloads now use `user_role` and include `status`.
+
+## 19. Protected routes needed current DB-backed status and role enforcement
+
+- Issue:
+  - A user whose status or role changed after login could keep using protected endpoints until JWT expiry because middleware did not reload the user record or enforce role checks.
+- Affected files:
+  - `D:\Blog\App\Core\Middlewares\AuthMiddleware.php:10`
+  - `D:\Blog\App\Core\Middlewares\AuthorMiddleware.php:8`
+  - `D:\Blog\App\Models\Auth\RefreshTokenModel.php:58`
+  - `D:\Blog\routes.php:72`
+- Fix:
+  - `auth` middleware now validates that the refresh token belongs to the same JWT user, reloads the user from the database, and rejects users whose status is no longer `approved`.
+  - Added `author` middleware to restrict content-management routes to `author` and `admin` roles.
+  - Added user-wide refresh-token revocation support for non-approved accounts.
+
+## 20. New registrations should not default to admin
+
+- Issue:
+  - New accounts were being created with elevated role data by default.
+- Affected files:
+  - `D:\Blog\App\Models\Users\UserModel.php:26`
+- Fix:
+  - Registration now defaults `user_role` to `author`.
+
+## 21. Guest middleware needed to honor current user status
+
+- Issue:
+  - Guest-only routes could treat a stale but valid refresh token as an active login even after the underlying user status changed in the database.
+- Affected files:
+  - `D:\Blog\App\Core\Middlewares\GuestMiddleware.php:10`
+- Fix:
+  - Guest middleware now reloads the current user record and only blocks guest routes when the user still exists and has `status = approved`.
+
+## 22. Logout route should require the current authenticated session
+
+- Issue:
+  - Logout was cookie-driven only, which left it open to simple CSRF-style triggering.
+- Affected files:
+  - `D:\Blog\routes.php:120`
+- Fix:
+  - Logout now runs behind `auth` middleware and requires the current bearer JWT plus refresh token cookie.
+
+## 23. Naming inconsistencies in middleware and upload model
+
+- Issue:
+  - `MiddlewareKernal` and `UploadsModal` were misspelled class names that reduced clarity.
+- Affected files:
+  - `D:\Blog\App\Core\Middlewares\MiddlewareKernel.php:4`
+  - `D:\Blog\App\Models\Uploads\UploadsModel.php:8`
+- Fix:
+  - Renamed them to `MiddlewareKernel` and `UploadsModel`, and updated imports and constructor type hints throughout the codebase.
 
 ## Current status
 
 - PHP syntax check result: no syntax errors across the project at the time of this log.
 - Remaining lower-priority items:
-  - naming inconsistencies such as `MiddlewareKernal`, `UploadsModal`, and `vaildateToken`
+  - the method name `vaildateToken` is still misspelled
   - there is still no public or protected single-upload GET endpoint exposed through `routes.php`

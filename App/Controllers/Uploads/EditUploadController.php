@@ -3,7 +3,7 @@
 namespace App\Controllers\Uploads;
 
 use App\Core\Auth;
-use App\Models\Uploads\UploadsModal;
+use App\Models\Uploads\UploadsModel;
 
 class EditUploadController
 {
@@ -16,11 +16,11 @@ class EditUploadController
     private $captions;
     private $updateData = [];
 
-    public function __construct(UploadsModal $uploadsModel)
+    public function __construct(UploadsModel $uploadsModel)
     {
         $this->uploadsModel = $uploadsModel;
         $this->inputs = json_decode(file_get_contents("php://input"), true);
-        $this->userId = Auth::user();
+        $this->userId = Auth::id();
     }
 
     public function editUpload()

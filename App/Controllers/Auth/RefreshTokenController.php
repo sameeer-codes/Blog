@@ -37,10 +37,12 @@ class RefreshTokenController
         $user = $this->userModel->checkUserById($userid);
         if ($user) {
             if ($user['status'] === 'pending_approval') {
+                $this->refreshTokenModel->revokeRefreshTokensByUser($user['id']);
                 sendResponse(403, "Your account is pending approval.");
             }
 
             if ($user['status'] !== 'approved') {
+                $this->refreshTokenModel->revokeRefreshTokensByUser($user['id']);
                 sendResponse(403, "Your account is not active.");
             }
 
