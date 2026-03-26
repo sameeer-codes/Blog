@@ -193,6 +193,8 @@ Behavior:
 
 - Hashes password using `PASSWORD_ARGON2ID`
 - Rejects duplicate email or username
+- Stores `user_role` as `admin`
+- Stores `status` as `pending_approval`
 
 Success response:
 
@@ -234,6 +236,7 @@ Validation extracted from the controller:
 Behavior:
 
 - Verifies credentials against stored password hash
+- Allows login only when `status = approved`
 - Returns a JWT in the response body
 - Sets a `refreshToken` cookie
 - Stores refresh token metadata in the database
@@ -255,6 +258,8 @@ Possible error cases:
 
 - `422`: invalid request payload
 - `401`: invalid email or password
+- `403`: account pending approval
+- `403`: account not active
 - `409`: user is already logged in
 - `500`: refresh token save or DB error
 
@@ -321,6 +326,8 @@ Possible error cases:
 - `401`: expired or revoked refresh token
 - `404`: refresh token not found
 - `404`: user not found for token
+- `403`: account pending approval
+- `403`: account not active
 - `500`: DB error
 
 ### `GET /api/posts`
@@ -1023,7 +1030,8 @@ The exact schema is not included in the repository, but the following fields are
 - `username`
 - `email`
 - `password`
-- `userRole`
+- `user_role`
+- `status`
 
 ### `refreshtokens`
 

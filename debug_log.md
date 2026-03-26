@@ -181,6 +181,20 @@ This file records the major logic and structural issues found during review, the
 - Fix:
   - Updated the example response so `post_status` is `published`.
 
+## 18. User role column naming changed and user approval status was introduced
+
+- Issue:
+  - The database changed from `userRole` to `user_role`, and user records now include a `status` enum with `pending_approval`, `approved`, and `deleted`.
+- Affected files:
+  - `D:\Blog\App\Models\Users\UserModel.php:16`
+  - `D:\Blog\App\Controllers\Auth\LoginController.php:62`
+  - `D:\Blog\App\Controllers\Auth\RefreshTokenController.php:47`
+  - `D:\Blog\README.md:151`
+- Fix:
+  - Registration now stores `user_role = admin` and `status = pending_approval`.
+  - Login and refresh-token flows now allow access only when `status = approved`.
+  - JWT payloads now use `user_role` and include `status`.
+
 ## Current status
 
 - PHP syntax check result: no syntax errors across the project at the time of this log.

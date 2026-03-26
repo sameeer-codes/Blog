@@ -36,11 +36,20 @@ class RefreshTokenController
         $userid = $this->refreshToken['userid'];
         $user = $this->userModel->checkUserById($userid);
         if ($user) {
+            if ($user['status'] === 'pending_approval') {
+                sendResponse(403, "Your account is pending approval.");
+            }
+
+            if ($user['status'] !== 'approved') {
+                sendResponse(403, "Your account is not active.");
+            }
+
             $jwtToken = generate_jwt([
                 'id' => $user['id'],
                 'username' => $user['username'],
                 'email' => $user['email'],
-                'userRole' => $user['userRole'],
+                'user_role' => $user['user_role'],
+                'status' => $user['status'],
                 'issuedAt' => time(),
                 'expiresAt' => time() + 3600,
             ]);

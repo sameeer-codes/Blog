@@ -23,8 +23,9 @@ class UserModel
             sendResponse(409, "This username is already taken.");
         }
         try {
-            $data['userRole'] = 'admin';
-            $sql = "INSERT INTO `users`(`username`, `email`, `password`, `userRole`) VALUES (:username ,  :email , :password , :userRole)";
+            $data['user_role'] = 'admin';
+            $data['status'] = 'pending_approval';
+            $sql = "INSERT INTO `users`(`username`, `email`, `password`, `user_role`, `status`) VALUES (:username ,  :email , :password , :user_role, :status)";
             $this->connection->Query($sql, $data);
             return true;
         } catch (PDOException $e) {
