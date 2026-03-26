@@ -29,9 +29,9 @@ class PostModel
 
     public function getPosts($params)
     {
-        $sql = "SELECT post_id, post_title, post_slug, post_content, post_excerpt, post_featured_image, author_id, post_status, created_at, updated_at FROM posts WHERE post_status = 'published' ORDER BY post_id DESC LIMIT :limit OFFSET :offset";
+        $sql = "SELECT posts.post_id, posts.post_title, posts.post_slug, posts.post_content, posts.post_excerpt, posts.post_featured_image, uploads.base_path AS featured_image_path, posts.author_id, posts.post_status, posts.created_at, posts.updated_at FROM posts LEFT JOIN uploads ON uploads.id = posts.post_featured_image WHERE posts.post_status = 'published' ORDER BY posts.post_id DESC LIMIT :limit OFFSET :offset";
         try {
-            return $this->connection->Query($sql, $params)->fetchAll();
+            return $this->formatPosts($this->connection->Query($sql, $params)->fetchAll());
         } catch (PDOException $e) {
             error_log("Failed to fetch posts" . $e->getMessage());
             sendResponse(500, "Unable to fetch posts right now.");
@@ -52,9 +52,9 @@ class PostModel
 
     public function getPostById($params)
     {
-        $sql = "SELECT post_id, post_title, post_slug, post_content, post_excerpt, post_featured_image, author_id, post_status, created_at, updated_at FROM posts WHERE post_id = :post_id AND post_status = 'published'";
+        $sql = "SELECT posts.post_id, posts.post_title, posts.post_slug, posts.post_content, posts.post_excerpt, posts.post_featured_image, uploads.base_path AS featured_image_path, posts.author_id, posts.post_status, posts.created_at, posts.updated_at FROM posts LEFT JOIN uploads ON uploads.id = posts.post_featured_image WHERE posts.post_id = :post_id AND posts.post_status = 'published'";
         try {
-            return $this->connection->Query($sql, $params)->fetch();
+            return $this->formatPost($this->connection->Query($sql, $params)->fetch());
         } catch (PDOException $e) {
             error_log("Failed to fetch post" . $e->getMessage());
             sendResponse(500, "Unable to fetch the post right now.");
@@ -63,9 +63,9 @@ class PostModel
 
     public function getPostBySlug($params)
     {
-        $sql = "SELECT post_id, post_title, post_slug, post_content, post_excerpt, post_featured_image, author_id, post_status, created_at, updated_at FROM posts WHERE post_slug = :post_slug AND post_status = 'published'";
+        $sql = "SELECT posts.post_id, posts.post_title, posts.post_slug, posts.post_content, posts.post_excerpt, posts.post_featured_image, uploads.base_path AS featured_image_path, posts.author_id, posts.post_status, posts.created_at, posts.updated_at FROM posts LEFT JOIN uploads ON uploads.id = posts.post_featured_image WHERE posts.post_slug = :post_slug AND posts.post_status = 'published'";
         try {
-            return $this->connection->Query($sql, $params)->fetch();
+            return $this->formatPost($this->connection->Query($sql, $params)->fetch());
         } catch (PDOException $e) {
             error_log("Failed to fetch post by slug" . $e->getMessage());
             sendResponse(500, "Unable to fetch the post right now.");
@@ -153,9 +153,9 @@ class PostModel
 
     public function searchPosts($params)
     {
-        $sql = "SELECT post_id, post_title, post_slug, post_content, post_excerpt, post_featured_image, author_id, post_status, created_at, updated_at FROM posts WHERE post_status = 'published' AND (post_title LIKE :query OR post_content LIKE :query OR post_excerpt LIKE :query) ORDER BY post_id DESC LIMIT :limit OFFSET :offset";
+        $sql = "SELECT posts.post_id, posts.post_title, posts.post_slug, posts.post_content, posts.post_excerpt, posts.post_featured_image, uploads.base_path AS featured_image_path, posts.author_id, posts.post_status, posts.created_at, posts.updated_at FROM posts LEFT JOIN uploads ON uploads.id = posts.post_featured_image WHERE posts.post_status = 'published' AND (posts.post_title LIKE :query OR posts.post_content LIKE :query OR posts.post_excerpt LIKE :query) ORDER BY posts.post_id DESC LIMIT :limit OFFSET :offset";
         try {
-            return $this->connection->Query($sql, $params)->fetchAll();
+            return $this->formatPosts($this->connection->Query($sql, $params)->fetchAll());
         } catch (PDOException $e) {
             error_log("Failed to search posts" . $e->getMessage());
             sendResponse(500, "Unable to search posts right now.");
@@ -176,9 +176,9 @@ class PostModel
 
     public function getAuthorPosts($params)
     {
-        $sql = "SELECT post_id, post_title, post_slug, post_content, post_excerpt, post_featured_image, author_id, post_status, created_at, updated_at FROM posts WHERE author_id = :author_id ORDER BY post_id DESC LIMIT :limit OFFSET :offset";
+        $sql = "SELECT posts.post_id, posts.post_title, posts.post_slug, posts.post_content, posts.post_excerpt, posts.post_featured_image, uploads.base_path AS featured_image_path, posts.author_id, posts.post_status, posts.created_at, posts.updated_at FROM posts LEFT JOIN uploads ON uploads.id = posts.post_featured_image WHERE posts.author_id = :author_id ORDER BY posts.post_id DESC LIMIT :limit OFFSET :offset";
         try {
-            return $this->connection->Query($sql, $params)->fetchAll();
+            return $this->formatPosts($this->connection->Query($sql, $params)->fetchAll());
         } catch (PDOException $e) {
             error_log("Failed to fetch author posts" . $e->getMessage());
             sendResponse(500, "Unable to fetch your posts right now.");
@@ -199,12 +199,36 @@ class PostModel
 
     public function getAuthorPostById($params)
     {
-        $sql = "SELECT post_id, post_title, post_slug, post_content, post_excerpt, post_featured_image, author_id, post_status, created_at, updated_at FROM posts WHERE post_id = :post_id AND author_id = :author_id";
+        $sql = "SELECT posts.post_id, posts.post_title, posts.post_slug, posts.post_content, posts.post_excerpt, posts.post_featured_image, uploads.base_path AS featured_image_path, posts.author_id, posts.post_status, posts.created_at, posts.updated_at FROM posts LEFT JOIN uploads ON uploads.id = posts.post_featured_image WHERE posts.post_id = :post_id AND posts.author_id = :author_id";
         try {
-            return $this->connection->Query($sql, $params)->fetch();
+            return $this->formatPost($this->connection->Query($sql, $params)->fetch());
         } catch (PDOException $e) {
             error_log("Failed to fetch author post" . $e->getMessage());
             sendResponse(500, "Unable to fetch your post right now.");
         }
+    }
+
+    protected function formatPosts($posts)
+    {
+        foreach ($posts as $index => $post) {
+            $posts[$index] = $this->formatPost($post);
+        }
+
+        return $posts;
+    }
+
+    protected function formatPost($post)
+    {
+        if (!$post) {
+            return $post;
+        }
+
+        $post['post_featured_image'] = !empty($post['featured_image_path'])
+            ? absoluteUrl($post['featured_image_path'])
+            : null;
+
+        unset($post['featured_image_path']);
+
+        return $post;
     }
 }
