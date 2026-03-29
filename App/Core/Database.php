@@ -13,8 +13,13 @@ class Database
     protected $password;
     protected $statement;
 
-    public function __construct($hostname = HOST, $dbname = DB_NAME, $username = USER_NAME, $password = DB_PASSWORD)
+    public function __construct($hostname = null, $dbname = null, $username = null, $password = null)
     {
+        $hostname = $hostname ?? $_ENV['DB_HOST'];
+        $dbname = $dbname ?? $_ENV['DB_NAME'];
+        $username = $username ?? $_ENV['DB_USER'];
+        $password = $password ?? $_ENV['DB_PASSWORD'];
+
         $this->dsn = "mysql:host=" . $hostname . ";dbname=" . $dbname;
         $this->username = $username;
         $this->password = $password;

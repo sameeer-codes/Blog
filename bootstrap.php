@@ -20,12 +20,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+
+use Dotenv\Dotenv;
+
+// Load the .env file from the project root directory
+$dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv->load();
+
 const BASE_PATH = __DIR__;
 require_once BASE_PATH . '/App/Core/functions.php';
-require_once correctPath('/config.php');
 require_once correctPath('/Container.php');
 require_once correctPath('/App.php');
 require_once correctPath('/routes.php');
+
 
 //Route to Controller
 $url = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);

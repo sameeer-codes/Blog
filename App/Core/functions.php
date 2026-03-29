@@ -26,11 +26,12 @@ function generate_jwt($payload = [], $key = JWT_KEY, $algorithm = 'HS256')
     return $token;
 }
 
-function decode_jwt($token, $key = JWT_KEY, $algorithm = 'HS256')
+function decode_jwt($token, $key = null, $algorithm = 'HS256')
 {
+    $key = $key ?? getenv('JWT_KEY');
+
     $data = JWT::decode($token, new Key($key, $algorithm));
-    $data = (array) $data;
-    return $data;
+    return (array) $data;
 }
 
 function generate_refresh_token()
