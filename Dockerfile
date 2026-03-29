@@ -34,6 +34,11 @@ RUN composer install --no-dev --optimize-autoloader
 # Render uses PORT, default web-service port is 10000
 EXPOSE 10000
 
-CMD sh -c 'sed -i "s/Listen 80/Listen ${PORT:-10000}/" /etc/apache2/ports.conf && \
+CMD sh -c 'if [ -n "${DB_SSL_CA_CONTENT:-}" ]; then \
+printf "%s" "$DB_SSL_CA_CONTENT" > /tmp/aiven-ca.pem && \
+chmod 600 /tmp/aiven-ca.pem && \
+export DB_SSL_CA=/tmp/aiven-ca.pem; \
+fi && \
+sed -i "s/Listen 80/Listen ${PORT:-10000}/" /etc/apache2/ports.conf && \
 sed -i "s/:80/:${PORT:-10000}/" /etc/apache2/sites-available/000-default.conf && \
 apache2-foreground'

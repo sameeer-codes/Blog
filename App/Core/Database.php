@@ -12,6 +12,7 @@ class Database
     protected $username;
     protected $password;
     protected $statement;
+    protected $options = [];
 
     public function __construct($hostname = null, $dbname = null, $username = null, $password = null)
     {
@@ -19,17 +20,24 @@ class Database
         $dbname = $dbname ?? $_ENV['DB_NAME'];
         $username = $username ?? $_ENV['DB_USER'];
         $password = $password ?? $_ENV['DB_PASSWORD'];
+        $port = $_ENV['DB_PORT'] ?? '3306';
+        $charset = $_ENV['DB_CHARSET'] ?? 'utf8mb4';
+        $sslCa = $_ENV['DB_SSL_CA'] ?? null;
 
-        $this->dsn = "mysql:host=" . $hostname . ";dbname=" . $dbname;
+        $this->dsn = "mysql:host=" . $hostname . ";port=" . $port . ";dbname=" . $dbname . ";charset=" . $charset;
         $this->username = $username;
         $this->password = $password;
+
+        if (!empty($sslCa)) {
+            $this->options[PDO::MYSQL_ATTR_SSL_CA] = $sslCa;
+        }
     }
 
     public function connect()
     {
         try {
 
-            $this->connection = new PDO($this->dsn, $this->username, $this->password);
+            $this->connection = new PDO($this->dsn, $this->username, $this->password, $this->options);
             $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
             return $this->connection;

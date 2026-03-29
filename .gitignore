@@ -2,3 +2,4 @@ config.php
 vendor/
 public/uploads/*
 .env
+ca.pem

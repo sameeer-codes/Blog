@@ -1,6 +1,7 @@
 .git
 .gitignore
 .env
+ca.pem
 node_modules
 vendor
 Dockerfile.old
