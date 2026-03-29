@@ -23,9 +23,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 use Dotenv\Dotenv;
 
-// Load the .env file from the project root directory
-$dotenv = Dotenv::createImmutable(__DIR__);
-$dotenv->load();
+if (file_exists(__DIR__ . '/.env')) {
+    $dotenv = Dotenv::createImmutable(__DIR__);
+    $dotenv->load();
+}
 
 const BASE_PATH = __DIR__;
 require_once BASE_PATH . '/App/Core/functions.php';
