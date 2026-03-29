@@ -15,51 +15,18 @@ class Database
     protected $options = [];
     protected $sslCaPath;
 
-    protected function env($key, $default = null)
-    {
-        if (array_key_exists($key, $_ENV) && $_ENV[$key] !== '') {
-            return $_ENV[$key];
-        }
 
-        $value = getenv($key);
-
-        if ($value !== false && $value !== '') {
-            return $value;
-        }
-
-        return $default;
-    }
-
-    protected function resolveSslCaPath()
-    {
-        $sslCa = $this->env('DB_SSL_CA');
-
-        if (!empty($sslCa)) {
-            return $sslCa;
-        }
-
-        $sslCaContent = $this->env('DB_SSL_CA_CONTENT');
-
-        if (empty($sslCaContent)) {
-            return null;
-        }
-
-        $tempFile = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'aiven-ca.pem';
-        file_put_contents($tempFile, $sslCaContent);
-
-        return $tempFile;
-    }
 
     public function __construct($hostname = null, $dbname = null, $username = null, $password = null)
     {
-        $hostname = $hostname ?? $this->env('DB_HOST');
-        $dbname = $dbname ?? $this->env('DB_NAME');
-        $username = $username ?? $this->env('DB_USER');
-        $password = $password ?? $this->env('DB_PASSWORD');
-        $port = $this->env('DB_PORT', '3306');
-        $charset = $this->env('DB_CHARSET', 'utf8mb4');
-        $sslCa = $this->resolveSslCaPath();
-
+        $hostname = $hostname ?? $_ENV['DB_HOST'];
+        $dbname = $dbname ?? $_ENV['DB_NAME'];
+        $username = $username ?? $_ENV['DB_USER'];
+        $password = $password ?? $_ENV['DB_PASSWORD'];
+        $port = $_ENV['DB_PORT'] ?? '3306';
+        $charset = $_ENV['DB_CHARSET'] ?? 'utf8mb4';
+        $sslCa = $_ENV['DB_SSL_CA'] ?? null;
+        
         $this->dsn = "mysql:host=" . $hostname . ";port=" . $port . ";dbname=" . $dbname . ";charset=" . $charset;
         $this->username = $username;
         $this->password = $password;
