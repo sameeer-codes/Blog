@@ -278,6 +278,66 @@ This file records the major logic and structural issues found during review, the
 - Fix:
   - Post creation now returns `post_featured_image` as an absolute URL or `null`, matching the post read endpoints.
 
+## 27. Linux deployment failed because model paths were tracked with the wrong case
+
+- Issue:
+  - The repository tracked model files under `App/models/...` while namespaces referenced `App\Models\...`. This worked on Windows but failed on Linux/Render because PSR-4 autoloading is case-sensitive there.
+- Affected files:
+  - `D:\Blog\composer.json`
+  - `D:\Blog\routes.php:31`
+  - `D:\Blog\App\Models\Users\UserModel.php:1`
+  - `D:\Blog\App\Models\Posts\PostModel.php:1`
+  - `D:\Blog\App\Models\Uploads\UploadsModel.php:1`
+  - `D:\Blog\App\Models\Auth\RefreshTokenModel.php:1`
+- Fix:
+  - Renamed the tracked Git paths from `App/models` to `App/Models` so Composer autoloading works correctly on Render/Linux.
+
+## 28. Bootstrap loaded environment configuration after CORS header logic
+
+- Issue:
+  - `bootstrap.php` tried to read CORS environment variables before Composer and Dotenv were loaded, which made env-based CORS configuration unreliable.
+- Affected files:
+  - `D:\Blog\bootstrap.php:1`
+- Fix:
+  - Reordered the bootstrap flow so Composer autoload and `.env` loading happen before CORS headers are resolved and sent.
+
+## 29. Remote Aiven MySQL connection needed explicit port, charset, and SSL CA support
+
+- Issue:
+  - The original database DSN only included host and db name, which was not enough for the remote Aiven MySQL service.
+- Affected files:
+  - `D:\Blog\App\Core\Database.php:1`
+- Fix:
+  - Added support for:
+    - `DB_PORT`
+    - `DB_CHARSET`
+    - `DB_SSL_CA`
+  - Updated the DSN to include the required remote connection pieces and verified the setup against Aiven SSL usage.
+
+## 30. Render Docker secret file existed but was not readable by Apache/PHP
+
+- Issue:
+  - On Render, the CA secret file at `/etc/secrets/ca.pem` existed but Apache/PHP could not read it, which caused MySQL SSL connection failures.
+- Affected files:
+  - `D:\Blog\Dockerfile:1`
+  - `D:\Blog\App\Core\Database.php:1`
+- Fix:
+  - Added temporary SSL-path diagnostics to confirm the secret file state.
+  - Updated the Docker image so `www-data` joins group `1000`, following Render's documented secret-file permission model.
+  - Rebuilt locally and verified that `/etc/secrets/ca.pem` became readable and the app returned `HTTP 200`.
+
+## 31. Local Docker simulation matched the successful server-side fix
+
+- Issue:
+  - The deployment problem needed to be isolated from application code by reproducing the container setup locally.
+- Affected files:
+  - `D:\Blog\Dockerfile:1`
+  - `D:\Blog\App\Core\Database.php:1`
+- Fix:
+  - Rebuilt the Docker image locally.
+  - Mounted the CA file into `/etc/secrets/ca.pem` and passed the same env vars used by Render.
+  - Confirmed the app booted and the SSL file was readable, which proved the remaining issue was the Render container permission model rather than the PHP database code.
+
 ## Current status
 
 - PHP syntax check result: no syntax errors across the project at the time of this log.

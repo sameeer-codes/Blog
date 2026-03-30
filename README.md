@@ -23,39 +23,45 @@ This repository contains a custom PHP backend for a blog application. It exposes
 ## Runtime Behavior
 
 - All responses are JSON and use the shared `sendResponse()` helper.
-- CORS currently allows `http://localhost:5173`.
+- CORS is resolved from `ALLOWED_ORIGINS` and matched against the incoming `Origin` header.
 - The custom router supports `GET`, `POST`, `PUT`, `PATCH`, and `DELETE`.
 - The currently registered routes use `GET`, `POST`, `PATCH`, and `DELETE`.
 - The API sets `Content-Type: application/json` globally.
 - The login flow sets a `refreshToken` cookie with `HttpOnly`.
+- The app logs a successful bootstrap message and a successful database connection message during healthy requests.
 
 ## Configuration
 
-Configuration is currently hardcoded in `config.php`:
+The application is now configured through environment variables.
 
-- `HOST`
+- `ALLOWED_ORIGINS`
+- `DB_HOST`
+- `DB_PORT`
 - `DB_NAME`
-- `USER_NAME`
+- `DB_USER`
 - `DB_PASSWORD`
+- `DB_CHARSET`
+- `DB_SSL_CA`
 - `JWT_KEY`
 
-Current defaults in the codebase:
+Example local `.env` values:
 
-```php
-const HOST = 'localhost';
-const DB_NAME = 'blog';
-const USER_NAME = 'root';
-const DB_PASSWORD = '';
-const JWT_KEY = 'testSecretKey';
+```env
+ALLOWED_ORIGINS=http://localhost:5173
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_NAME=blog
+DB_USER=root
+DB_PASSWORD=
+DB_CHARSET=utf8mb4
+JWT_KEY=testSecretKey
 ```
-
-For real deployment, these values should be moved to environment variables.
 
 ## Local Setup
 
 1. Install PHP and MySQL.
 2. Create a MySQL database named `blog`.
-3. Update `config.php` if your local DB credentials differ.
+3. Create a `.env` file with your local database credentials and JWT key.
 4. Install Composer dependencies:
 
 ```bash
@@ -75,6 +81,47 @@ With that setup, the API base URL is typically:
 ```text
 http://localhost:8000
 ```
+
+## Render + Aiven Deployment Notes
+
+For the current production setup, the backend runs on Render through Docker and connects to Aiven MySQL over SSL.
+
+Recommended environment variables on Render:
+
+```env
+ALLOWED_ORIGINS=https://your-frontend-domain.com,http://localhost:5173
+DB_HOST=your-aiven-host
+DB_PORT=your-aiven-port
+DB_NAME=sameer-ali-blog-db
+DB_USER=your-aiven-username
+DB_PASSWORD=your-aiven-password
+DB_CHARSET=utf8mb4
+DB_SSL_CA=/etc/secrets/ca.pem
+JWT_KEY=your-production-jwt-key
+```
+
+Render secret-file setup:
+
+- Upload the Aiven CA certificate as a Render Secret File named `ca.pem`
+- Render exposes it at:
+  - `/etc/secrets/ca.pem`
+- Set:
+  - `DB_SSL_CA=/etc/secrets/ca.pem`
+
+Docker note:
+
+- The Docker image adds `www-data` to group `1000` so Apache/PHP can read Render-mounted secret files correctly.
+
+Deployment troubleshooting summary:
+
+- Windows local development hid a case-sensitive PSR-4 path issue that broke Linux/Render deployment
+- Aiven MySQL required:
+  - host
+  - port
+  - db name
+  - charset
+  - SSL CA file
+- Render secret files existed at runtime but were not initially readable by Apache/PHP until the Docker permission fix was applied
 
 ## Architecture Notes
 

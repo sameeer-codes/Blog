@@ -55,13 +55,10 @@ class Database
     public function connect()
     {
         try {
-            error_log('DB SSL path: ' . ($this->sslCaPath ?? 'not provided'));
-            error_log('DB SSL file exists: ' . (!empty($this->sslCaPath) && file_exists($this->sslCaPath) ? 'yes' : 'no'));
-            error_log('DB SSL file readable: ' . (!empty($this->sslCaPath) && is_readable($this->sslCaPath) ? 'yes' : 'no'));
-
             $this->connection = new PDO($this->dsn, $this->username, $this->password, $this->options);
             $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->connection->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+            error_log('Database connection established successfully.');
             return $this->connection;
         } catch (PDOException $e) {
             error_log('Database Connection Failed' . $e->getMessage());

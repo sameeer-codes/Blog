@@ -45,4 +45,5 @@ require_once correctPath('/routes.php');
 
 //Route to Controller
 $url = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+error_log('Application bootstrap completed successfully.');
 $router->routeToController($url, $_SERVER['REQUEST_METHOD'] ?? 'GET');
