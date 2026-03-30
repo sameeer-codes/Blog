@@ -5,6 +5,7 @@ RUN apt-get update && apt-get install -y \
     unzip \
     libzip-dev \
     && docker-php-ext-install pdo pdo_mysql zip \
+    && usermod -a -G 1000 www-data \
     && a2enmod rewrite \
     && rm -rf /var/lib/apt/lists/*
 
