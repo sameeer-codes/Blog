@@ -12,7 +12,6 @@ class PostModel
     public function __construct(Database $database)
     {
         $this->connection = $database;
-        $this->connection->connect();
     }
 
     public function createPost($params)
@@ -205,6 +204,144 @@ class PostModel
         } catch (PDOException $e) {
             error_log("Failed to fetch author post" . $e->getMessage());
             sendResponse(500, "Unable to fetch your post right now.");
+        }
+    }
+
+    public function getAllPosts($params)
+    {
+        $conditions = [];
+        $queryParams = [
+            'limit' => $params['limit'],
+            'offset' => $params['offset'],
+        ];
+
+        if (!empty($params['status']) && $params['status'] !== 'all') {
+            $conditions[] = 'posts.post_status = :status';
+            $queryParams['status'] = $params['status'];
+        }
+
+        $where = count($conditions) ? ('WHERE ' . implode(' AND ', $conditions)) : '';
+        $sql = "SELECT posts.post_id, posts.post_title, posts.post_slug, posts.post_content, posts.post_excerpt, posts.post_featured_image, uploads.base_path AS featured_image_path, posts.author_id, posts.post_status, posts.created_at, posts.updated_at FROM posts LEFT JOIN uploads ON uploads.id = posts.post_featured_image $where ORDER BY posts.post_id DESC LIMIT :limit OFFSET :offset";
+        try {
+            return $this->formatPosts($this->connection->Query($sql, $queryParams)->fetchAll());
+        } catch (PDOException $e) {
+            error_log("Failed to fetch all posts" . $e->getMessage());
+            sendResponse(500, "Unable to fetch posts right now.");
+        }
+    }
+
+    public function countAllPosts($params)
+    {
+        $conditions = [];
+        $queryParams = [];
+
+        if (!empty($params['status']) && $params['status'] !== 'all') {
+            $conditions[] = 'post_status = :status';
+            $queryParams['status'] = $params['status'];
+        }
+
+        $where = count($conditions) ? ('WHERE ' . implode(' AND ', $conditions)) : '';
+        $sql = "SELECT COUNT(*) as total FROM posts $where";
+        try {
+            $result = $this->connection->Query($sql, $queryParams)->fetch();
+            return (int) $result['total'];
+        } catch (PDOException $e) {
+            error_log("Failed to count posts" . $e->getMessage());
+            sendResponse(500, "Unable to count posts right now.");
+        }
+    }
+
+    public function adminUpdateStatus($params)
+    {
+        $sql = "UPDATE posts SET post_status = :post_status WHERE post_id = :post_id";
+        try {
+            return $this->connection->Query($sql, $params)->rowCount();
+        } catch (PDOException $e) {
+            error_log("Failed to update post status" . $e->getMessage());
+            sendResponse(500, "Unable to update post status right now.");
+        }
+    }
+
+    public function adminDeletePost($params)
+    {
+        $sql = "DELETE FROM posts WHERE post_id = :post_id";
+        try {
+            return $this->connection->Query($sql, $params)->rowCount();
+        } catch (PDOException $e) {
+            error_log("Failed to delete post" . $e->getMessage());
+            sendResponse(500, "Unable to delete the post right now.");
+        }
+    }
+
+    public function getAnyPostById($params)
+    {
+        $sql = "SELECT posts.post_id, posts.post_title, posts.post_slug, posts.post_content, posts.post_excerpt, posts.post_featured_image, uploads.base_path AS featured_image_path, posts.author_id, posts.post_status, posts.created_at, posts.updated_at FROM posts LEFT JOIN uploads ON uploads.id = posts.post_featured_image WHERE posts.post_id = :post_id";
+        try {
+            return $this->formatPost($this->connection->Query($sql, $params)->fetch());
+        } catch (PDOException $e) {
+            error_log("Failed to fetch admin post" . $e->getMessage());
+            sendResponse(500, "Unable to fetch the post right now.");
+        }
+    }
+
+    public function adminUpdatePost($params)
+    {
+        $fields = [];
+        $queryParams = [
+            'post_id' => $params['post_id'],
+        ];
+
+        if (array_key_exists('post_title', $params)) {
+            $fields[] = "post_title = :post_title";
+            $queryParams['post_title'] = $params['post_title'];
+        }
+
+        if (array_key_exists('post_slug', $params)) {
+            $fields[] = "post_slug = :post_slug";
+            $queryParams['post_slug'] = $params['post_slug'];
+        }
+
+        if (array_key_exists('post_content', $params)) {
+            $fields[] = "post_content = :post_content";
+            $queryParams['post_content'] = $params['post_content'];
+        }
+
+        if (array_key_exists('post_excerpt', $params)) {
+            $fields[] = "post_excerpt = :post_excerpt";
+            $queryParams['post_excerpt'] = $params['post_excerpt'];
+        }
+
+        if (array_key_exists('post_featured_image', $params)) {
+            $fields[] = "post_featured_image = :post_featured_image";
+            $queryParams['post_featured_image'] = $params['post_featured_image'];
+        }
+
+        if (array_key_exists('post_status', $params)) {
+            $fields[] = "post_status = :post_status";
+            $queryParams['post_status'] = $params['post_status'];
+        }
+
+        if (empty($fields)) {
+            return 0;
+        }
+
+        $sql = "UPDATE posts SET " . implode(', ', $fields) . " WHERE post_id = :post_id";
+        try {
+            return $this->connection->Query($sql, $queryParams)->rowCount();
+        } catch (PDOException $e) {
+            error_log("Failed to update admin post" . $e->getMessage());
+            sendResponse(500, "Unable to update the post right now.");
+        }
+    }
+
+    public function getPostsByAuthor($params)
+    {
+        $sql = "SELECT posts.post_id, posts.post_title, posts.post_slug, posts.post_content, posts.post_excerpt, posts.post_featured_image, uploads.base_path AS featured_image_path, posts.author_id, posts.post_status, posts.created_at, posts.updated_at FROM posts LEFT JOIN uploads ON uploads.id = posts.post_featured_image WHERE posts.author_id = :author_id ORDER BY posts.post_id DESC";
+        try {
+            return $this->formatPosts($this->connection->Query($sql, $params)->fetchAll());
+        } catch (PDOException $e) {
+            error_log("Failed to fetch posts by author" . $e->getMessage());
+            sendResponse(500, "Unable to fetch user posts right now.");
         }
     }
 

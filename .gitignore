@@ -3,3 +3,4 @@ vendor/
 public/uploads/*
 .env
 ca.pem
+.codex

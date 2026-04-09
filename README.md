@@ -133,6 +133,18 @@ The backend is structured around a few custom primitives:
 - Named middleware (`auth`, `guest`)
 - Controller and model separation
 
+### Database connection lifecycle
+
+The database wrapper now behaves like a shared request-scoped connection service:
+
+- `Container.php` registers one shared `Database` service for the request lifecycle
+- models receive that shared `Database` instance through dependency injection
+- `AuthMiddleware` and `GuestMiddleware` now also use the shared container `Database` service instead of constructing a new one directly
+- `Database::connect()` is idempotent and returns the existing PDO connection if one has already been created
+- `Database::Query()` lazily ensures the connection exists before preparing and executing SQL
+
+In practice, that means the first DB-backed operation in a request opens the PDO connection, and later models/middleware in the same request reuse it instead of reconnecting.
+
 ## Authentication Model
 
 Authentication is implemented with two pieces:
@@ -1078,6 +1090,761 @@ Possible error cases:
 - `403`: upload does not belong to the authenticated user
 - `404`: upload not found
 - `500`: update failed
+
+## Admin-only endpoints
+
+Auth: `auth` + `admin` middleware (JWT + refresh cookie; requires `user_role = admin` and `status = approved`).
+
+These admin controllers intentionally follow the same request-handling pattern already used across the rest of the codebase:
+
+- `GET` list endpoints read filters and pagination from `$_GET`
+- `PATCH` and `DELETE` admin endpoints decode JSON from `php://input`
+- All responses are returned through the shared `sendResponse()` helper
+
+### `GET /api/admin/users`
+
+Fetches paginated users for the admin dashboard.
+
+Auth: `auth` + `admin` middleware
+
+Required auth:
+
+- `Authorization: Bearer <jwt>`
+- `refreshToken` cookie
+- authenticated user must have `user_role = admin`
+- authenticated user must have `status = approved`
+
+How parameters must be passed:
+
+- Pass filters and pagination values in the query string
+
+Query parameters:
+
+- `status`: optional, default `all`, allowed values: `all`, `pending_approval`, `approved`, `blocked`
+- `page`: optional, default `1`, must be greater than `0`
+- `limit`: optional, default `20`, must be between `1` and `100`
+
+Behavior:
+
+- Returns users across the whole website, not just the current admin
+- Applies an optional `status` filter
+- Orders users by `id DESC`
+- Adds an `index` field to each returned item based on the current page offset
+- Returns a standard pagination object in `data.pagination`
+
+Success response shape:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "Users fetched successfully.",
+  "data": {
+    "items": [
+      {
+        "id": 12,
+        "username": "sameer_01",
+        "email": "sameer@example.com",
+        "user_role": "author",
+        "status": "pending_approval",
+        "created_at": "2026-04-01 10:00:00",
+        "updated_at": "2026-04-01 10:00:00",
+        "index": 1
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 1,
+      "total_pages": 1,
+      "has_next_page": false,
+      "has_previous_page": false
+    }
+  }
+}
+```
+
+Possible error cases:
+
+- `422`: invalid `status` filter
+- `422`: invalid `page`
+- `422`: invalid `limit`
+- `401`: missing or invalid authentication
+- `403`: authenticated user is not an approved admin
+- `500`: query or count failed
+
+### `PATCH /api/admin/users/status`
+
+Updates the status of a user account.
+
+Auth: `auth` + `admin` middleware
+
+Required auth:
+
+- `Authorization: Bearer <jwt>`
+- `refreshToken` cookie
+- authenticated user must have `user_role = admin`
+- authenticated user must have `status = approved`
+
+How parameters must be passed:
+
+- Send `Content-Type: application/json`
+- Pass `id` and `status` in the JSON request body
+
+Request body:
+
+```json
+{
+  "id": 12,
+  "status": "approved"
+}
+```
+
+Validation:
+
+- `id`: required, must be a positive integer
+- `status`: required, must be one of `pending_approval`, `approved`, `blocked`
+
+Behavior:
+
+- Looks up the target user by id
+- Updates the user's `status`
+- If the new status is anything other than `approved`, all refresh tokens for that user are revoked
+- Returns a success message even when the payload is valid but no database row changes
+
+Success response when an update is applied:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "User status updated successfully."
+}
+```
+
+Success response when the payload is valid but nothing changes:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "No changes were made."
+}
+```
+
+Possible error cases:
+
+- `422`: invalid JSON payload
+- `422`: invalid user id
+- `422`: invalid status
+- `404`: user not found
+- `401`: missing or invalid authentication
+- `403`: authenticated user is not an approved admin
+- `500`: update failed
+
+### `PATCH /api/admin/users/role`
+
+Updates a user's role.
+
+Auth: `auth` + `admin` middleware
+
+Required auth:
+
+- `Authorization: Bearer <jwt>`
+- `refreshToken` cookie
+- authenticated user must have `user_role = admin`
+- authenticated user must have `status = approved`
+
+How parameters must be passed:
+
+- Send `Content-Type: application/json`
+- Pass `id` and `user_role` in the JSON request body
+
+Request body:
+
+```json
+{
+  "id": 12,
+  "user_role": "admin"
+}
+```
+
+Validation:
+
+- `id`: required, must be a positive integer
+- `user_role`: required, must be one of `author`, `admin`
+
+Success response when an update is applied:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "User role updated successfully."
+}
+```
+
+Success response when the payload is valid but nothing changes:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "No changes were made."
+}
+```
+
+Possible error cases:
+
+- `422`: invalid JSON payload
+- `422`: invalid user id
+- `422`: invalid user role
+- `404`: user not found
+- `401`: missing or invalid authentication
+- `403`: authenticated user is not an approved admin
+- `500`: update failed
+
+### `GET /api/admin/users/single`
+
+Fetches a safe detailed view of a user without exposing the password, along with that user's posts and uploads.
+
+Auth: `auth` + `admin` middleware
+
+Required auth:
+
+- `Authorization: Bearer <jwt>`
+- `refreshToken` cookie
+- authenticated user must have `user_role = admin`
+- authenticated user must have `status = approved`
+
+How parameters must be passed:
+
+- Pass `id` in the query string
+
+Query parameters:
+
+- `id`: required, must be a positive integer
+
+Behavior:
+
+- Returns safe user fields only
+- Does not include the password hash
+- Returns all posts created by that user
+- Returns all uploads owned by that user
+- Returns simple counts for posts and uploads
+
+Success response shape:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "User details fetched successfully.",
+  "data": {
+    "user": {
+      "id": 12,
+      "username": "sameer_01",
+      "email": "sameer@example.com",
+      "user_role": "author",
+      "status": "approved",
+      "created_at": "2026-04-01 10:00:00",
+      "updated_at": "2026-04-01 10:00:00"
+    },
+    "posts": [],
+    "uploads": [],
+    "stats": {
+      "posts_count": 0,
+      "uploads_count": 0
+    }
+  }
+}
+```
+
+Possible error cases:
+
+- `422`: invalid user id
+- `404`: user not found
+- `401`: missing or invalid authentication
+- `403`: authenticated user is not an approved admin
+- `500`: query failed
+
+### `GET /api/admin/posts`
+
+Fetches paginated posts across all authors for admin moderation.
+
+Auth: `auth` + `admin` middleware
+
+Required auth:
+
+- `Authorization: Bearer <jwt>`
+- `refreshToken` cookie
+- authenticated user must have `user_role = admin`
+- authenticated user must have `status = approved`
+
+How parameters must be passed:
+
+- Pass filters and pagination values in the query string
+
+Query parameters:
+
+- `status`: optional, default `all`, allowed values: `all`, `draft`, `published`, `archived`
+- `page`: optional, default `1`, must be greater than `0`
+- `limit`: optional, default `20`, must be between `1` and `100`
+
+Behavior:
+
+- Returns posts across all authors
+- Applies an optional `status` filter
+- Orders posts by `post_id DESC`
+- Adds an `index` field to each returned item based on the current page offset
+- Includes the same post fields used by other post listing endpoints
+- Returns a standard pagination object in `data.pagination`
+
+Success response shape:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "Posts fetched successfully.",
+  "data": {
+    "items": [
+      {
+        "post_id": 3,
+        "post_title": "Admin review example post",
+        "post_slug": "admin-review-example-post",
+        "post_content": "Post body here...",
+        "post_excerpt": "Post excerpt here...",
+        "post_featured_image": "http://localhost:8000/uploads/example-3.png",
+        "author_id": 2,
+        "post_status": "draft",
+        "created_at": "2026-04-01 10:00:00",
+        "updated_at": "2026-04-01 10:00:00",
+        "index": 1
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 1,
+      "total_pages": 1,
+      "has_next_page": false,
+      "has_previous_page": false
+    }
+  }
+}
+```
+
+Possible error cases:
+
+- `422`: invalid `status` filter
+- `422`: invalid `page`
+- `422`: invalid `limit`
+- `401`: missing or invalid authentication
+- `403`: authenticated user is not an approved admin
+- `500`: query or count failed
+
+### `PATCH /api/admin/posts/status`
+
+Updates the publication status of a post regardless of owner.
+
+Auth: `auth` + `admin` middleware
+
+Required auth:
+
+- `Authorization: Bearer <jwt>`
+- `refreshToken` cookie
+- authenticated user must have `user_role = admin`
+- authenticated user must have `status = approved`
+
+How parameters must be passed:
+
+- Send `Content-Type: application/json`
+- Pass `post_id` and `post_status` in the JSON request body
+
+Request body:
+
+```json
+{
+  "post_id": 3,
+  "post_status": "published"
+}
+```
+
+Validation:
+
+- `post_id`: required, must be a positive integer
+- `post_status`: required, must be one of `draft`, `published`, `archived`
+
+Behavior:
+
+- Updates the target post without checking ownership
+- Returns a success message even when the payload is valid but no database row changes
+
+Success response when an update is applied:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "Post status updated successfully."
+}
+```
+
+Success response when the payload is valid but nothing changes:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "No changes were made."
+}
+```
+
+Possible error cases:
+
+- `422`: invalid JSON payload
+- `422`: invalid `post_id`
+- `422`: invalid `post_status`
+- `401`: missing or invalid authentication
+- `403`: authenticated user is not an approved admin
+- `500`: update failed
+
+### `PATCH /api/admin/posts`
+
+Updates a post as admin, including content, excerpt, featured image, slug-affecting title changes, and status.
+
+Auth: `auth` + `admin` middleware
+
+Required auth:
+
+- `Authorization: Bearer <jwt>`
+- `refreshToken` cookie
+- authenticated user must have `user_role = admin`
+- authenticated user must have `status = approved`
+
+How parameters must be passed:
+
+- Send `Content-Type: application/json`
+- Pass `post_id` and any editable fields in the JSON request body
+
+Request body:
+
+```json
+{
+  "post_id": 3,
+  "post_title": "Updated title from admin",
+  "post_body": "Updated long post body...",
+  "post_excerpt": "Updated excerpt for the post...",
+  "featured_image": 9,
+  "post_status": "published"
+}
+```
+
+Behavior:
+
+- `post_id` is required
+- all other editable fields are optional
+- if `post_title` changes, `post_slug` is regenerated and made unique
+- if `post_excerpt` is empty and `post_body` is updated, an excerpt is generated automatically
+- `featured_image` may be set to `null` or empty to remove it
+- when setting a featured image, the upload must belong to the post author
+
+Validation:
+
+- `post_id`: required, valid integer greater than `0`
+- `post_title`: optional, `30` to `200` characters
+- `post_body`: optional, `500` to `4999` characters
+- `post_excerpt`: optional, `100` to `299` characters when provided as text
+- `featured_image`: optional, valid upload id when provided
+- `post_status`: optional, one of `draft`, `published`, `archived`
+
+Success response when an update is applied:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "Post updated successfully."
+}
+```
+
+Success response when the payload is valid but nothing changes:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "No post changes were made."
+}
+```
+
+Possible error cases:
+
+- `400`: no fields were provided to update
+- `422`: invalid JSON payload
+- `422`: invalid `post_id`
+- `422`: invalid field values
+- `403`: featured image does not belong to the post author
+- `404`: post not found
+- `404`: featured image upload not found
+- `401`: missing or invalid authentication
+- `403`: authenticated user is not an approved admin
+- `500`: update failed
+
+### `DELETE /api/admin/posts`
+
+Deletes a post regardless of owner.
+
+Auth: `auth` + `admin` middleware
+
+Required auth:
+
+- `Authorization: Bearer <jwt>`
+- `refreshToken` cookie
+- authenticated user must have `user_role = admin`
+- authenticated user must have `status = approved`
+
+How parameters must be passed:
+
+- Send `Content-Type: application/json`
+- Pass `post_id` in the JSON request body
+
+Request body:
+
+```json
+{
+  "post_id": 3
+}
+```
+
+Validation:
+
+- `post_id`: required, must be a positive integer
+
+Success response:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "Post deleted successfully."
+}
+```
+
+Possible error cases:
+
+- `422`: invalid JSON payload
+- `422`: invalid `post_id`
+- `404`: post not found
+- `401`: missing or invalid authentication
+- `403`: authenticated user is not an approved admin
+- `500`: delete failed
+
+### `GET /api/admin/uploads`
+
+Fetches paginated uploads across all users for admin moderation.
+
+Auth: `auth` + `admin` middleware
+
+Required auth:
+
+- `Authorization: Bearer <jwt>`
+- `refreshToken` cookie
+- authenticated user must have `user_role = admin`
+- authenticated user must have `status = approved`
+
+How parameters must be passed:
+
+- Pass pagination values in the query string
+
+Query parameters:
+
+- `page`: optional, default `1`, must be greater than `0`
+- `limit`: optional, default `20`, must be between `1` and `100`
+
+Behavior:
+
+- Returns uploads across all users
+- Orders uploads by `id DESC`
+- Adds an `index` field to each returned item based on the current page offset
+- Includes `user_id` because this is an admin-wide listing
+- Returns a standard pagination object in `data.pagination`
+
+Success response shape:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "Uploads fetched successfully.",
+  "data": {
+    "items": [
+      {
+        "id": 5,
+        "user_id": 2,
+        "uploaded_to": null,
+        "file_name": "example.png",
+        "base_path": "/uploads/example.png",
+        "mime_type": "image/png",
+        "file_size": 102400,
+        "alt_text": null,
+        "captions": null,
+        "created_at": "2026-04-01 10:00:00",
+        "updated_at": "2026-04-01 10:00:00",
+        "index": 1
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 1,
+      "total_pages": 1,
+      "has_next_page": false,
+      "has_previous_page": false
+    }
+  }
+}
+```
+
+Possible error cases:
+
+- `422`: invalid `page`
+- `422`: invalid `limit`
+- `401`: missing or invalid authentication
+- `403`: authenticated user is not an approved admin
+- `500`: query or count failed
+
+### `PATCH /api/admin/uploads`
+
+Updates the `alt_text` and/or `captions` fields of any upload as admin.
+
+Auth: `auth` + `admin` middleware
+
+Required auth:
+
+- `Authorization: Bearer <jwt>`
+- `refreshToken` cookie
+- authenticated user must have `user_role = admin`
+- authenticated user must have `status = approved`
+
+How parameters must be passed:
+
+- Send `Content-Type: application/json`
+- Pass `id` and any fields to update in the JSON request body
+
+Request body:
+
+```json
+{
+  "id": 5,
+  "alt_text": "Updated alt text",
+  "captions": "Updated caption"
+}
+```
+
+Behavior:
+
+- `id` is required and must be an integer
+- `alt_text` is optional
+- `captions` is optional
+- both text fields are sanitized with trimming and tag removal
+- if both optional fields are empty or missing, the API returns an error instead of updating
+- unlike the author upload edit route, admin does not need to own the upload
+
+Validation:
+
+- `alt_text`: maximum `200` characters
+- `captions`: maximum `200` characters
+
+Success response when an update is applied:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "Upload updated successfully."
+}
+```
+
+Success response when the payload is valid but nothing changes:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "No upload changes were made."
+}
+```
+
+Possible error cases:
+
+- `400`: no fields were provided to update
+- `422`: invalid JSON payload
+- `422`: invalid upload id
+- `422`: `alt_text` exceeds `200` characters
+- `422`: `captions` exceeds `200` characters
+- `404`: upload not found
+- `401`: missing or invalid authentication
+- `403`: authenticated user is not an approved admin
+- `500`: update failed
+
+### `DELETE /api/admin/uploads`
+
+Deletes an upload record and its stored file regardless of owner.
+
+Auth: `auth` + `admin` middleware
+
+Required auth:
+
+- `Authorization: Bearer <jwt>`
+- `refreshToken` cookie
+- authenticated user must have `user_role = admin`
+- authenticated user must have `status = approved`
+
+How parameters must be passed:
+
+- Send `Content-Type: application/json`
+- Pass `id` in the JSON request body
+
+Request body:
+
+```json
+{
+  "id": 5
+}
+```
+
+Validation:
+
+- `id`: required, must be a positive integer
+
+Behavior:
+
+- Looks up the upload record by id
+- Attempts to delete the physical file from `public/uploads` when it exists
+- Deletes the upload record from the database after the file step succeeds
+- Does not require ownership checks because the endpoint is admin-only
+
+Success response:
+
+```json
+{
+  "success": true,
+  "code": 200,
+  "message": "Upload deleted successfully."
+}
+```
+
+Possible error cases:
+
+- `422`: invalid JSON payload
+- `422`: invalid upload id
+- `404`: upload not found
+- `401`: missing or invalid authentication
+- `403`: authenticated user is not an approved admin
+- `500`: uploaded file could not be deleted from storage
+- `500`: delete failed
 
 ## Database Expectations
 

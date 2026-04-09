@@ -34,6 +34,24 @@ This is not a full CMS or a Medium-like platform yet. It is a custom MVP backend
 - `App/Models`
   - DB access layer
 
+### Shared database connection pattern
+- `Container.php`
+  - registers one shared `Database` service for the current request
+- `Database::connect()`
+  - now returns the existing PDO connection if one already exists
+- `Database::Query()`
+  - lazily calls `connect()` so queries still work even when models do not connect eagerly in their constructors
+- models
+  - receive the shared `Database` object through dependency injection
+- middleware
+  - now uses the shared container `Database` service instead of constructing a new `Database` directly
+
+This is not a global application-wide singleton across all HTTP requests.
+It is closer to a request-scoped singleton-like pattern:
+- one shared `Database` service instance per request
+- one PDO connection created on first use
+- that same PDO connection reused by models and middleware during the rest of the request
+
 ### Architectural style used
 This project uses a lightweight custom MVC-like structure:
 - router -> controller -> model
@@ -99,6 +117,26 @@ Models handle:
 
 Possible question:
 - What responsibilities belong in a controller vs a model in this codebase?
+
+### 2.5 Shared DB service and singleton-style connection reuse
+The codebase now uses a shared DB service registered in the container and reused across the request.
+
+Flow:
+1. `Container.php` creates one shared `Database` service.
+2. Routes/controllers/models receive that same `Database` object.
+3. Middleware also resolves the same `Database` service from the container.
+4. The first query opens the PDO connection.
+5. Later queries reuse the same PDO instance because `connect()` returns the existing connection.
+
+Why this matters:
+- avoids repeatedly creating PDO connections in the same request
+- keeps middleware and controllers aligned on the same DB service
+- preserves the simple custom architecture while improving performance
+
+Possible questions:
+- What is the difference between a true singleton and a request-scoped shared service?
+- Why is idempotent `connect()` useful in a custom PHP backend?
+- Why is lazy connection creation often cleaner than eager connection creation in every model constructor?
 
 ### 3. Shared response contract
 Most endpoints return a consistent response shape through `sendResponse()`:

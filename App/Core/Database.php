@@ -54,6 +54,10 @@ class Database
 
     public function connect()
     {
+        if ($this->connection instanceof PDO) {
+            return $this->connection;
+        }
+
         try {
             $this->connection = new PDO($this->dsn, $this->username, $this->password, $this->options);
             $this->connection->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -70,6 +74,7 @@ class Database
     {
 
         try {
+            $this->connect();
 
             $this->statement = $this->connection->prepare($sql);
             if (!empty($params)) {

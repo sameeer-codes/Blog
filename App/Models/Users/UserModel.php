@@ -12,7 +12,6 @@ class UserModel
     public function __construct(Database $connection)
     {
         $this->connection = $connection;
-        $this->connection->connect();
     }
 
     public function registerUser($data = [])
@@ -62,5 +61,86 @@ class UserModel
             return $user;
         }
         return false;
+    }
+
+    public function getUsers($params)
+    {
+        $conditions = [];
+        $queryParams = [
+            'limit' => $params['limit'],
+            'offset' => $params['offset'],
+        ];
+
+        if (!empty($params['status']) && $params['status'] !== 'all') {
+            $conditions[] = 'status = :status';
+            $queryParams['status'] = $params['status'];
+        }
+
+        $where = count($conditions) ? ('WHERE ' . implode(' AND ', $conditions)) : '';
+        $sql = "SELECT id, username, email, user_role, status, created_at, updated_at FROM users $where ORDER BY id DESC LIMIT :limit OFFSET :offset";
+
+        try {
+            return $this->connection->Query($sql, $queryParams)->fetchAll();
+        } catch (PDOException $e) {
+            error_log("Failed to fetch users" . $e->getMessage());
+            sendResponse(500, "Unable to fetch users right now.");
+        }
+    }
+
+    public function countUsers($params)
+    {
+        $conditions = [];
+        $queryParams = [];
+
+        if (!empty($params['status']) && $params['status'] !== 'all') {
+            $conditions[] = 'status = :status';
+            $queryParams['status'] = $params['status'];
+        }
+
+        $where = count($conditions) ? ('WHERE ' . implode(' AND ', $conditions)) : '';
+        $sql = "SELECT COUNT(*) as total FROM users $where";
+
+        try {
+            $result = $this->connection->Query($sql, $queryParams)->fetch();
+            return (int) $result['total'];
+        } catch (PDOException $e) {
+            error_log("Failed to count users" . $e->getMessage());
+            sendResponse(500, "Unable to count users right now.");
+        }
+    }
+
+    public function updateUserStatus($params)
+    {
+        $sql = "UPDATE users SET status = :status WHERE id = :id";
+        try {
+            return $this->connection->Query($sql, $params)->rowCount();
+        } catch (PDOException $e) {
+            error_log("Failed to update user status" . $e->getMessage());
+            sendResponse(500, "Unable to update user status right now.");
+        }
+    }
+
+    public function updateUserRole($params)
+    {
+        $sql = "UPDATE users SET user_role = :user_role WHERE id = :id";
+        try {
+            return $this->connection->Query($sql, $params)->rowCount();
+        } catch (PDOException $e) {
+            error_log("Failed to update user role" . $e->getMessage());
+            sendResponse(500, "Unable to update user role right now.");
+        }
+    }
+
+    public function getSafeUserById($id)
+    {
+        try {
+            $sql = "SELECT id, username, email, user_role, status, created_at, updated_at FROM users WHERE id = :id";
+            $user = $this->connection->Query($sql, ['id' => $id])->fetch();
+        } catch (PDOException $e) {
+            error_log("Failed to fetch safe user record" . $e->getMessage());
+            sendResponse(500, "Unable to fetch the user record.");
+        }
+
+        return $user ?: false;
     }
 }

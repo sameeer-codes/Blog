@@ -8,7 +8,6 @@ class RefreshTokenModel
     public function __construct($db)
     {
         $this->connection = $db;
-        $this->connection->connect();
     }
 
     public function saveRefreshToken($data)

@@ -6,3 +6,4 @@ node_modules
 vendor
 Dockerfile.old
 README.md
+.codex

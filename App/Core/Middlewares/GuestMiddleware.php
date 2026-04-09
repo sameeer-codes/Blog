@@ -2,7 +2,6 @@
 
 namespace App\Core\Middlewares;
 
-use App\Core\Database;
 use App\Models\Auth\RefreshTokenModel;
 use App\Models\Users\UserModel;
 
@@ -14,7 +13,8 @@ class GuestMiddleware
             return;
         }
 
-        $database = new Database();
+        $container = $GLOBALS['container'];
+        $database = $container->getService('Database');
         $refreshTokenModel = new RefreshTokenModel($database);
         $userModel = new UserModel($database);
         $refreshToken = $refreshTokenModel->getRefreshToken($_COOKIE['refreshToken']);

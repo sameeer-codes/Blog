@@ -3,7 +3,6 @@
 namespace App\Core\Middlewares;
 
 use App\Core\Auth;
-use App\Core\Database;
 use App\Models\Auth\RefreshTokenModel;
 use App\Models\Users\UserModel;
 use Exception;
@@ -13,7 +12,8 @@ class AuthMiddleware
     static public function handle()
     {
         if (isset($_SERVER['HTTP_AUTHORIZATION']) && isset($_COOKIE['refreshToken'])) {
-            $database = new Database();
+            $container = $GLOBALS['container'];
+            $database = $container->getService('Database');
             $refreshTokenModel = new RefreshTokenModel($database);
             $refreshToken = $refreshTokenModel->getRefreshToken($_COOKIE['refreshToken']);
             if (
