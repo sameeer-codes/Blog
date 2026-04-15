@@ -1848,6 +1848,31 @@ Possible error cases:
 
 ## Database Expectations
 
+The app now includes a minimal schema bootstrap helper that checks for the required tables during startup and creates them if they do not exist yet. This is not a full migration system, but it gives the project a lightweight ORM-like safety net for local/dev setup.
+
+Schema bootstrap classes:
+
+- `App/Core/Schema/TableDefinition.php`
+- `App/Core/Schema/RequiredTables.php`
+- `App/Core/Schema/SchemaManager.php`
+
+Bootstrap entrypoint:
+
+- `bootstrap.php`
+
+Environment toggle:
+
+- `AUTO_CREATE_SCHEMA=false`
+- set it to `true` only when you want the app to auto-create missing base tables during startup
+- keep it `false` during normal runtime to avoid schema lookup overhead on every request
+
+Current managed tables:
+
+- `users`
+- `refreshtokens`
+- `uploads`
+- `posts`
+
 The code implies the existence of at least these tables:
 
 - `users`
@@ -1863,8 +1888,8 @@ The exact schema is not included in the repository, but the following fields are
 - `username`
 - `email`
 - `password`
-- `user_role`
-- `status`
+- `user_role` (`author`, `admin`)
+- `status` (`pending_approval`, `approved`, `blocked`)
 
 ### `refreshtokens`
 
@@ -1895,7 +1920,7 @@ The exact schema is not included in the repository, but the following fields are
 - `post_excerpt`
 - `post_featured_image`
 - `author_id`
-- `post_status`
+- `post_status` (`draft`, `published`, `archived`)
 - `created_at`
 - `updated_at`
 
@@ -1904,7 +1929,7 @@ The exact schema is not included in the repository, but the following fields are
 These are useful for anyone integrating against the API:
 
 - Config and secrets are hardcoded instead of using environment variables
-- No schema or migration files are included
+- No real migration/versioning system is included yet; the current schema helper only creates missing base tables
 - No automated test suite is included
 
 ## Testing Guide

@@ -416,6 +416,7 @@ Possible questions:
 ### What still could be improved
 - move config and secrets to environment variables
 - add migrations/schema files
+- a good intermediate step before full migrations is a tiny schema manager that checks for required tables and creates only the missing ones
 - add automated tests
 - add rate limiting on auth and upload endpoints
 - support path parameters in the router
@@ -580,6 +581,7 @@ The main gaps are not conceptual weaknesses in the MVP itself. They are the norm
 - better deployment configuration
 - automated tests
 - schema management
+- current repo now has a lightweight class-based schema bootstrap (`SchemaManager` + `RequiredTables`) which is useful for local setup, but it is still not a substitute for real versioned migrations
 - stronger operational protections
 - more formal API documentation
 

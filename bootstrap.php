@@ -8,11 +8,15 @@ error_reporting(E_ALL);
 require_once __DIR__ . '/vendor/autoload.php';
 
 use Dotenv\Dotenv;
+use App\Core\Schema\RequiredTables;
+use App\Core\Schema\SchemaManager;
 
 if (file_exists(__DIR__ . '/.env')) {
-    $dotenv = Dotenv::createImmutable(__DIR__);
+$dotenv = Dotenv::createImmutable(__DIR__);
     $dotenv->load();
 }
+
+$autoCreateSchema = filter_var($_ENV['AUTO_CREATE_SCHEMA'] ?? false, FILTER_VALIDATE_BOOLEAN);
 
 // CORS headers
 $allowedOrigins = array_filter(
@@ -39,6 +43,13 @@ if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
 const BASE_PATH = __DIR__;
 require_once BASE_PATH . '/App/Core/functions.php';
 require_once correctPath('/Container.php');
+
+if ($autoCreateSchema) {
+    $database = $container->getService('Database');
+    $schemaManager = new SchemaManager($database, RequiredTables::definitions());
+    $schemaManager->ensureAll();
+}
+
 require_once correctPath('/App.php');
 require_once correctPath('/routes.php');
 

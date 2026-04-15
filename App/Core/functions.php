@@ -16,8 +16,11 @@ function sendResponse($code, $message, $data = null)
     exit;
 }
 
-function generate_jwt($payload = [], $key = JWT_KEY, $algorithm = 'HS256')
+function generate_jwt($payload = [], $key = null, $algorithm = 'HS256')
 {
+    if($key === null) {
+        $key = $_ENV['JWT_KEY'] ?? getenv('JWT_KEY');
+    }
     $jwtKey = $key;
     $jwtPayload = $payload;
     $jwtAlgorithm = $algorithm;
@@ -28,8 +31,10 @@ function generate_jwt($payload = [], $key = JWT_KEY, $algorithm = 'HS256')
 
 function decode_jwt($token, $key = null, $algorithm = 'HS256')
 {
-    $key = $key ?? getenv('JWT_KEY');
-
+     if($key === null) {
+        $key = $_ENV['JWT_KEY'] ?? getenv('JWT_KEY');
+    }
+    
     $data = JWT::decode($token, new Key($key, $algorithm));
     return (array) $data;
 }

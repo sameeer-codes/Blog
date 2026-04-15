@@ -4,3 +4,4 @@ public/uploads/*
 .env
 ca.pem
 .codex
+logs/

@@ -29,7 +29,7 @@ class RefreshTokenModel
     {
 
         try {
-            $sql = 'SELECT * FROM `refreshTokens` Where refreshtoken = :token';
+            $sql = 'SELECT * FROM `refreshtokens` Where refreshtoken = :token';
             $result = $this->connection->Query($sql, ['token' => $token])->fetch();
         } catch (PDOException $e) {
             error_log("Error fetching the refresh Token" . $e->getMessage());
@@ -46,7 +46,7 @@ class RefreshTokenModel
     public function revokeRefreshToken($token)
     {
         try {
-            $sql = "UPDATE `refreshTokens` SET `is_revoked` = 1 WHERE `refreshtoken` = :token";
+            $sql = "UPDATE `refreshtokens` SET `is_revoked` = 1 WHERE `refreshtoken` = :token";
             return $this->connection->Query($sql, ['token' => $token])->rowCount();
         } catch (PDOException $e) {
             error_log("Error revoking the refresh token" . $e->getMessage());
@@ -57,7 +57,7 @@ class RefreshTokenModel
     public function revokeRefreshTokensByUser($userid)
     {
         try {
-            $sql = "UPDATE `refreshTokens` SET `is_revoked` = 1 WHERE `userid` = :userid";
+            $sql = "UPDATE `refreshtokens` SET `is_revoked` = 1 WHERE `userid` = :userid";
             return $this->connection->Query($sql, ['userid' => $userid])->rowCount();
         } catch (PDOException $e) {
             error_log("Error revoking user refresh tokens" . $e->getMessage());
